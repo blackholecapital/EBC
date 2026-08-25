@@ -69,7 +69,17 @@ export default {
     let subject;
     let html;
 
-    if (messageType === "ebc-preliminary-estimate") {
+    if (messageType === "ebc-estimate-review-requested") {
+      const requirements = Array.isArray(payload.requirements) ? payload.requirements.join(" ") : String(payload.requirements || "");
+      subject = `${brand} — your custom estimate review is underway`;
+      html = shell(env, "Custom estimate review requested", `
+        <h2 style="margin-top:0;color:${esc(accent)};">We've got it, ${esc(contact.firstName || "there")}.</h2>
+        <p>Your request for <strong>${esc(contact.selectedProduct || contact.interest || "your custom cart project")}</strong> is now with the Everything Built Custom team for compatibility and pricing review.</p>
+        ${requirements ? `<div style="margin:22px 0;padding:16px;background:#f2f8fc;border-left:4px solid ${esc(accent)};"><strong>Details captured during your call</strong><div style="margin-top:8px;line-height:1.5;">${esc(requirements)}</div></div>` : ""}
+        <p>Because this is a custom-fit project, we will verify the cart make, model, year, configuration, and installation requirements before sending an actual estimate. No price has been guessed or approved yet.</p>
+        ${estimateCallbackBlock}
+        <p style="margin-bottom:0;">Reply to this email if you want to add photos, measurements, or other fitment details. You can also request a phone consultation or an appointment to bring the cart in for an evaluation.</p>`);
+    } else if (messageType === "ebc-preliminary-estimate") {
       const quote = payload.quote || {};
       const currency = quote.currency || "USD";
       const created = new Date(quote.createdAt || Date.now());
@@ -143,9 +153,10 @@ export default {
         <p>${esc(assistant)} can now help you choose a build or installation consultation date and time.</p>`);
     } else if (messageType === "ebc-sales-appointment-approve" || messageType === "ebc-sales-appointment-reschedule") {
       const rescheduled = messageType.endsWith("reschedule");
-      subject = `Your ${brand} sales consultation is ${rescheduled ? "rescheduled" : "confirmed"}`;
-      html = shell(env, rescheduled ? "Sales consultation rescheduled" : "Sales consultation confirmed", `
-        <h2 style="margin-top:0;color:${esc(accent)};">${rescheduled ? "Your new time is set" : "Your consultation is confirmed"}, ${esc(contact.firstName || "there")}.</h2>
+      const appointmentName = appointment.type === "bring-in-evaluation" ? "in-shop cart evaluation" : "phone consultation";
+      subject = `Your ${brand} ${appointmentName} is ${rescheduled ? "rescheduled" : "confirmed"}`;
+      html = shell(env, rescheduled ? `${appointmentName} rescheduled` : `${appointmentName} confirmed`, `
+        <h2 style="margin-top:0;color:${esc(accent)};">${rescheduled ? "Your new time is set" : `Your ${appointmentName} is confirmed`}, ${esc(contact.firstName || "there")}.</h2>
         <p>An ${esc(brand)} project specialist will be ready to discuss <strong>${esc(contact.selectedProduct || contact.interest || "your custom cart project")}</strong>.</p>
         <div style="margin:24px 0;padding:20px;background:#f2f8fc;border:1px solid #f1caca;border-radius:8px;text-align:center;">
           <div style="font-size:20px;font-weight:700;color:${esc(accent)};">${esc(appointment.label || appointment.start || "Confirmed")}</div>

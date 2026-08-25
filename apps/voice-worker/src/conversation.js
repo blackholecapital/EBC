@@ -46,16 +46,16 @@ export function conversationOpening(state = {}, { assistant = "EBC AI", brand = 
     const estimateLine = estimate
       ? `I have our notes and estimate ${estimate} for ${subject} right here, so you won't need to repeat yourself.`
       : `I have our notes about ${subject} right here, so you won't need to repeat yourself.`;
-    return `${hello} ${returnLine} ${estimateLine} What would you like to pick up with today?`;
+    return `${hello} ${returnLine} ${estimateLine} I can email an estimate, request a phone consultation, or arrange a time to bring the cart in for an evaluation. Which would help most?`;
   }
 
   if (customerInitiated) {
-    return `${hello} Thanks for calling. I can help narrow down the right product, capture compatibility and build details, prepare a preliminary estimate when pricing is approved, or arrange time with the EBC team. What are you working on?`;
+    return `${hello} Thanks for calling. I can help with an estimate, a phone consultation, or an appointment to bring the cart in. What are you working on?`;
   }
 
   const leadContext = [subject && subject !== "your cart project" ? subject : "", state.location]
     .filter(Boolean)
     .join(" in ");
-  const contextLine = leadContext ? `I saw your request about ${leadContext}, and I wanted to personally welcome you.` : "I wanted to personally welcome you.";
-  return `${hello} ${contextLine} I can help confirm the cart details, narrow down the right setup, prepare a preliminary estimate when pricing is approved, or get the team ready for a custom project. How's your day going?`;
+  const contextLine = leadContext ? `I'm calling about your request for ${leadContext}.` : "I'm calling about your custom-cart request.";
+  return `${hello} ${contextLine} I can help with an estimate, a phone consultation, or an appointment to bring the cart in. Which direction would you like to take?`;
 }

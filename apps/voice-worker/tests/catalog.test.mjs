@@ -28,3 +28,12 @@ test("routes custom fabrication to human pricing review", () => {
   const quote = getEbcPreliminaryEstimate({ interest:"Custom Project", selectedProduct:"Custom Project Consultation", location:"Tampa" });
   assert.equal(quote, null);
 });
+
+test("does not invent a priced product when cart fitment is unresolved", () => {
+  const quote = getEbcPreliminaryEstimate({
+    interest:"Custom Roofs & Enclosures",
+    conversation:"I have an E-Z-GO 550 and want a plug-and-play custom roof kit",
+    location:"Tampa",
+  });
+  assert.equal(quote, null);
+});

@@ -5,9 +5,10 @@ import { conversationOpening, meaningfulBargeIn } from "../src/conversation.js";
 
 test("new lead opening welcomes the customer without forcing a product menu", () => {
   const opening = conversationOpening({ firstName:"mike", interest:"Fan Kits", location:"Tampa Bay" });
-  assert.match(opening, /personally welcome you/i);
-  assert.match(opening, /Fan Kits in Tampa Bay/i);
-  assert.match(opening, /preliminary estimate/i);
+  assert.match(opening, /request for Fan Kits in Tampa Bay/i);
+  assert.match(opening, /estimate/i);
+  assert.match(opening, /phone consultation/i);
+  assert.match(opening, /bring the cart in/i);
   assert.doesNotMatch(opening, /option one|option two/i);
 });
 
@@ -29,6 +30,8 @@ test("follow-up opening carries estimate context forward", () => {
   assert.match(opening, /getting back in touch/i);
   assert.match(opening, /EBC-20260816-1234/);
   assert.match(opening, /won't need to repeat yourself/i);
+  assert.match(opening, /email an estimate/i);
+  assert.match(opening, /bring the cart in/i);
 });
 
 test("background fillers do not interrupt EBC AI", () => {

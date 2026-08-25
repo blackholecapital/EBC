@@ -25,7 +25,7 @@ function eventText(event = {}) {
 function eventRole(event = {}) {
   const type = String(event.type || "");
   if (type === "stt.transcript.final") return "customer";
-  if (type.startsWith("buddy.") && event.response) return "buddy";
+  if (type === "buddy.transcript.assistant") return "buddy";
   return "system";
 }
 

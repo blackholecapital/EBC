@@ -193,6 +193,14 @@ class VoiceEngine:
                         await phrases.put(phrase)
                 for phrase in chunker.flush():
                     await phrases.put(phrase)
+                await output.put(
+                    event(
+                        "text.completed",
+                        request_id,
+                        text="".join(full_text).strip(),
+                        voiceId=resolved_voice,
+                    )
+                )
             except Exception as exc:
                 await output.put(event("response.error", request_id, error=str(exc), stage="llm"))
             finally:

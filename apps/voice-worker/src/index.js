@@ -158,6 +158,9 @@ function buildRealtimeTwiml(env, context) {
     ["contactId", context.contactId], ["firstName", context.firstName], ["lastName", context.lastName],
     ["email", context.email], ["phone", context.phone], ["interest", context.interest], ["location", context.location],
     ["comments", context.comments], ["leadScore", context.leadScore], ["preferredContactTime", context.preferredContactTime],
+    ["selectedProduct", context.selectedProduct], ["requirementsSummary", context.requirementsSummary],
+    ["estimateNumber", context.estimateNumber], ["estimateStatus", context.estimateStatus],
+    ["appointmentStatus", context.appointmentStatus], ["appointmentStart", context.appointmentStart], ["callStatus", context.callStatus],
     ["triggerType", context.triggerType], ["tenantId", context.tenantId], ["corporateId", context.corporateId], ["locationId", context.locationId],
   ];
   const customParameters = params
@@ -214,12 +217,19 @@ export default {
       const leadScore = payload.leadScore ?? payload.score ?? contact.leadScore ?? ctxIn.leadScore ?? "";
       const comments = payload.comments || contact.comments || ctxIn.comments || lead.comments || "";
       const preferredContactTime = payload.preferredContactTime || contact.preferredContactTime || ctxIn.preferredContactTime || lead.contact_time || "";
+      const selectedProduct = payload.selectedProduct || contact.selectedProduct || ctxIn.selectedProduct || "";
+      const requirementsSummary = payload.requirementsSummary || contact.requirementsSummary || ctxIn.requirementsSummary || "";
+      const estimateNumber = payload.estimateNumber || contact.estimateNumber || ctxIn.estimateNumber || "";
+      const estimateStatus = payload.estimateStatus || contact.estimateStatus || ctxIn.estimateStatus || "";
+      const appointmentStatus = payload.appointmentStatus || contact.appointmentStatus || ctxIn.appointmentStatus || "";
+      const appointmentStart = payload.appointmentStart || contact.appointmentStart || ctxIn.appointmentStart || "";
+      const callStatus = payload.callStatus || contact.callStatus || ctxIn.callStatus || "";
       const accountSid = env.TWILIO_ACCOUNT_SID;
       const authToken = env.TWILIO_AUTH_TOKEN;
       const fromNumber = env.TWILIO_PHONE_NUMBER;
       if (!accountSid || !authToken || !fromNumber) return json({ ok:false, error:"Twilio secrets are not configured" }, 500);
       const triggerType = String(payload.trigger?.type || ctxIn.triggerType || "");
-      const context = { contactId, firstName, lastName, email, phone, interest, location, comments, leadScore, preferredContactTime, triggerType, ...tenantContext(env, payload) };
+      const context = { contactId, firstName, lastName, email, phone, interest, location, comments, leadScore, preferredContactTime, selectedProduct, requirementsSummary, estimateNumber, estimateStatus, appointmentStatus, appointmentStart, callStatus, triggerType, ...tenantContext(env, payload) };
       const realtimeTwiml = buildRealtimeTwiml(env, context);
       const twiml = realtimeTwiml || buildFallbackTwiml(env, context);
       const mode = realtimeTwiml ? "media-stream" : "fallback-say";

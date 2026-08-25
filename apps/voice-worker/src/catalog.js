@@ -42,15 +42,22 @@ function normalize(value = "") {
   return String(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
+function hasKnownFitmentConflict(option, allText) {
+  const text=normalize(allText);
+  const denagoSpecific=/\b(?:denago|nomad|rover)\b/.test(normalize(`${option?.name||""} ${option?.short||""}`));
+  const otherCart=/\b(?:e z go|ezgo|can am|evolution|honda|polaris)\b/.test(text);
+  return denagoSpecific&&otherCart&&!/\bdenago\b/.test(text);
+}
+
 function bestCatalogOption(interest, selectedProduct, allText) {
   const options=BUDDY_DEMO_CATALOG[String(interest||"").trim()]||[];
   const selected=normalize(selectedProduct);
   if(selected){
     const exact=options.find(option=>normalize(option.name)===selected)||BASELINE_PRODUCTS.find(option=>normalize(option.name)===selected);
-    if(exact)return exact;
+    if(exact)return hasKnownFitmentConflict(exact,allText)?null:exact;
   }
   const words=normalize(allText).split(/\s+/).filter(word=>word.length>=4);
-  return options.find(option=>normalize(option.name).split(/\s+/).filter(word=>word.length>=4).some(word=>words.includes(word)))||options[0]||null;
+  return options.find(option=>!hasKnownFitmentConflict(option,allText)&&normalize(option.name).split(/\s+/).filter(word=>word.length>=4&&!['custom','project'].includes(word)).some(word=>words.includes(word)))||null;
 }
 
 function buildProjectEstimate(option, location, allText) {

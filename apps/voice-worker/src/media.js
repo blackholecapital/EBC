@@ -39,6 +39,8 @@ function availableProducts(options=[]){
 function requestsSalesFollowup(value=""){return /\b(sales|human|person|representative|transfer|callback|call back|appointment|schedule|proposal|quote|estimate)\b/i.test(String(value));}
 function requestsHumanHandoff(value=""){return /\b(sales(?:person| team)?|human|representative|transfer|callback|call back|have (?:someone|the team) call|talk to (?:someone|a person))\b/i.test(String(value));}
 function requestsSalesAppointment(value=""){return /\b(?:appointment|meeting|consultation)\b|\b(?:schedule|book|set up|arrange)\b.{0,35}\b(?:call|time|sales|meeting|appointment)\b|\b(?:available|availability)\b.{0,35}\b(?:today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday|\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/i.test(String(value));}
+function requestsBringInAppointment(value=""){return /\b(?:bring|drop)(?: the cart| it| my cart| my vehicle)?\s+(?:in|off|down)\b|\b(?:in[- ]shop|service|inspection|evaluation)\s+(?:appointment|visit|time)\b|\b(?:appointment|visit|time)\b.{0,35}\b(?:bring|drop|shop|service|inspect|evaluation|look at)\b/i.test(String(value));}
+function requestsPhoneConsultation(value=""){return /\b(?:phone|telephone|sales|consultation)\s+(?:call|appointment|consultation)\b|\b(?:schedule|book|set up|arrange)\b.{0,35}\b(?:phone call|consultation call|sales call)\b/i.test(String(value));}
 function requestsEstimateDelivery(value=""){return /\b(?:email|send|prepare|create|get|receive)\b.{0,40}\b(?:estimate|quote|proposal)\b|\b(?:estimate|quote|proposal)\b.{0,40}\b(?:email|send|prepare|create|get|receive)\b/i.test(String(value));}
 function confirmsEstimateDelivery(value=""){return /\b(?:send|email)(?: it| that| the estimate| the quote)?(?: now| please)?\b|\byou can send it\b|^(?:yes|yes please|sure|okay|ok|go ahead|do it|please do)[.! ]*$/i.test(String(value).trim());}
 function offersEstimate(value=""){return /\b(?:email|send|prepare|put together|create)\b.{0,50}\b(?:estimate|quote|proposal)\b|\b(?:estimate|quote|proposal)\b.{0,50}\b(?:email|send|prepare|put together|create)\b/i.test(String(value));}
@@ -77,7 +79,7 @@ Never greet the customer again or reintroduce EBC AI or Everything Built Custom�
 
 Invite the customer to explain what they want the cart to do or look like. Reflect back the important parts. Ask only one question at a time. Prioritize cart make, model, year, current wiring or connector details, desired accessory, color or finish, DIY versus installation or remote assist, location, and timeline—but do not interrogate them or repeat known details. Use prior context on follow-up calls.
 
-When enough is known, reflect back two or three requirements, recommend the closest EBC fit, and briefly explain why. Then ask whether the customer wants a preliminary estimate emailed. If a product requires review or has no approved starting price, create a team handoff instead of guessing. Published starting prices may vary by upgrade, color, cart model, year, harness, shipping, tax, and installation. Explain that every product is built custom to order and any estimate is subject to compatibility and final configuration review. Do not mention numbered options unless the customer asks for them. Do not claim an estimate, message, handoff, appointment, or email was sent until the application confirms it.
+When enough is known, reflect back two or three requirements, recommend the closest EBC fit, and briefly explain why. Then give a direct next step. The three calls to action are: email a preliminary estimate, request a phone consultation with the EBC team, or request an appointment to bring the cart in for an in-shop evaluation. Offer those choices naturally near the end of the exchange instead of ending without a next step. If a product requires review or has no approved starting price, offer to email confirmation that the estimate review was requested; never guess a price. Published starting prices may vary by upgrade, color, cart model, year, harness, shipping, tax, and installation. Explain that every product is built custom to order and any estimate is subject to compatibility and final configuration review. Do not mention numbered product options unless the customer asks for them. Do not claim an estimate, message, handoff, appointment, or email was sent until the application confirms it.
 
 Most replies should be one to three short, natural sentences and under 60 words. Return only the exact words EBC AI should say.`;
 }
@@ -133,18 +135,21 @@ export function handleTwilioMediaSocket(request,env,ctx){
     selectedProduct:null,documentStatus:"Not sent",signatureAcknowledged:false,deliveryOptions:[],awaitingDeliveryChoice:false,deliveryScheduled:false,
     optionsOffered:false,awaitingProductChoice:false,lastUtterance:"",lastUtteranceAt:0,lastClarifyAt:0,lastPendingDocPromptAt:0,
     conversationHistory:[],discoveryTurns:0,openingSent:false,openingStartedAt:0,openingAudioStarted:false,openingPlaybackComplete:false,openingMarkName:"",activeMarkName:"",playbackActive:false,openingResponseHandled:false,quoteRequested:false,quoteSent:false,estimateNumber:"",finalFlushTimer:null,
-    triggerType:"",priorRequirementsSummary:"",priorSelectedProduct:"",isFollowup:false,contextLoaded:false,pendingBargeIn:false,appointmentStatus:"",appointmentStart:"",appointmentOffered:false,closingScheduled:false,
+    triggerType:"",priorRequirementsSummary:"",priorSelectedProduct:"",estimateStatus:"",callStatus:"",isFollowup:false,contextLoaded:false,pendingBargeIn:false,appointmentStatus:"",appointmentStart:"",appointmentOffered:false,closingScheduled:false,
   };
   const pushEvent=(e)=>{const p=emitEvent(env,{tenantId:state.tenantId,corporateId:state.corporateId,locationId:state.locationId,...e});if(ctx?.waitUntil)ctx.waitUntil(p);else p.catch(()=>{});};
+  const pushAssistantTranscript=(text,eventType,extra={})=>{const response=String(text||"").trim();if(!response)return;pushEvent({type:"buddy.transcript.assistant",callSid:state.callSid,streamSid:state.streamSid,contactId:state.contactId,response,workflowType:eventType,...extra});};
   const sendTwilioClear=()=>{state.playbackActive=false;state.activeMarkName="";if(state.streamSid)try{server.send(JSON.stringify({event:"clear",streamSid:state.streamSid}));}catch{}};
   function sendTwilioAudioBase64(payload){if(!state.streamSid||!payload)return;state.playbackActive=true;server.send(JSON.stringify({event:"media",streamSid:state.streamSid,media:{payload}}));}
   function sendTwilioMark(markName){if(!state.streamSid||!markName)return;state.activeMarkName=markName;server.send(JSON.stringify({event:"mark",streamSid:state.streamSid,mark:{name:markName}}));}
   function sendTwilioAudio(audioBytes,markName){if(!state.streamSid||!audioBytes?.length)return;sendTwilioAudioBase64(bytesToBase64(audioBytes));sendTwilioMark(markName);}
   async function speak(text,generation,eventType="buddy.turn.completed"){
     const openingEvent=eventType==="buddy.sales.opening"||eventType==="buddy.sales.followup-opening";
+    if(generation!==state.turnGeneration)return;
+    pushAssistantTranscript(text,eventType);
     if(eilaRuntimeEnabled(env)){
       try{
-        const phrases=openingEvent?(String(text).match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[String(text)]).map(part=>part.trim()).filter(Boolean):[String(text)];
+        const phrases=[String(text)];
         let audioBytes=0,audioChunks=0,firstAudioMs=null,totalLatencyMs=0;
         for(const phrase of phrases){
           const streamed=await streamEilaSpeech(env,phrase,{onAudio:(payload)=>{if(generation!==state.turnGeneration)return false;if(openingEvent)state.openingAudioStarted=true;sendTwilioAudioBase64(payload);return true;}});
@@ -167,23 +172,31 @@ export function handleTwilioMediaSocket(request,env,ctx){
     pushEvent({type:eventType,callSid:state.callSid,streamSid:state.streamSid,contactId:state.contactId,response:text,audioBytes:audio.length});
   }
   async function speakSalesTurn(transcript,options,generation,eventType){
-    const preface = "Absolutely, let me check that for you.";
+    const preface = "";
+    let responseText="";
+    let transcriptRecorded=false;
     if(eilaRuntimeEnabled(env)){
       try{
-        const streamed=await streamEilaTurn(env,{prompt:runtimeSalesPrompt(state,transcript,options,preface),preface,sessionId:state.callSid,tenantId:state.tenantId,assistantName:String(env.ASSISTANT_NAME||"EBC AI"),metadata:{contactId:state.contactId,interest:state.interest,location:state.location,locationId:state.locationId}},{onAudio:(payload)=>{if(generation!==state.turnGeneration)return false;sendTwilioAudioBase64(payload);return true;}});
+        const streamed=await streamEilaTurn(env,{prompt:runtimeSalesPrompt(state,transcript,options,preface),preface,sessionId:state.callSid,tenantId:state.tenantId,assistantName:String(env.ASSISTANT_NAME||"EBC AI"),metadata:{contactId:state.contactId,interest:state.interest,location:state.location,locationId:state.locationId}},{onAudio:(payload)=>{if(generation!==state.turnGeneration)return false;sendTwilioAudioBase64(payload);return true;},onTextCompleted:(text)=>{responseText=String(text||"").trim();if(responseText&&!transcriptRecorded){transcriptRecorded=true;pushAssistantTranscript(responseText,eventType,{runtime:"eila-voice-runtime"});}}});
         if(streamed.cancelled||generation!==state.turnGeneration)return "";
         if(!streamed.text)throw new Error("EILA runtime returned an empty sales response");
         state.responseCount+=1;sendTwilioMark(`eila-${state.responseCount}-${Date.now()}`);
-        const responseText=streamed.text.trim();
+        responseText=streamed.text.trim();
+        if(!transcriptRecorded){transcriptRecorded=true;pushAssistantTranscript(responseText,eventType,{runtime:"eila-voice-runtime"});}
         console.log("EILA streamed sales turn sent",{callSid:state.callSid,contactId:state.contactId,responseText,audioBytes:streamed.audioBytes,audioChunks:streamed.audioChunks,firstAudioMs:streamed.firstAudioMs,totalLatencyMs:streamed.totalLatencyMs,eventType});
         pushEvent({type:eventType,callSid:state.callSid,streamSid:state.streamSid,contactId:state.contactId,response:responseText,audioBytes:streamed.audioBytes,firstAudioMs:streamed.firstAudioMs,totalLatencyMs:streamed.totalLatencyMs,runtime:"eila-voice-runtime"});
         return responseText;
       }catch(error){
         console.error("EILA sales stream failed",{callSid:state.callSid,contactId:state.contactId,error:error?.message||String(error),partialAudio:Boolean(error?.partialAudio)});
+        responseText=String(error?.partialText||responseText||"").trim();
+        if(responseText){
+          if(!transcriptRecorded)pushAssistantTranscript(responseText,eventType,{runtime:"eila-voice-runtime",partial:true});
+          if(error?.partialAudio){state.responseCount+=1;sendTwilioMark(`eila-partial-${state.responseCount}-${Date.now()}`);return responseText;}
+        }
         if(error?.partialAudio)throw error;
       }
     }
-    const responseText=await runtimeSalesReply(env,state,transcript,options);
+    responseText=await runtimeSalesReply(env,state,transcript,options);
     if(generation!==state.turnGeneration)return "";
     await speak(responseText,generation,eventType);
     return responseText;
@@ -232,8 +245,6 @@ export function handleTwilioMediaSocket(request,env,ctx){
         const estimateIntent=requestsEstimateDelivery(clean)||(!state.quoteSent&&state.quoteRequested&&confirmsEstimateDelivery(clean));
         if(estimateIntent){
           state.quoteRequested=true;
-          await speak("Absolutely. I'll put that estimate together now.",generation,"buddy.estimate.preparing");
-          if(generation!==state.turnGeneration)return;
           const requirements=estimateRequirements(state,clean);
           const quote=getEbcPreliminaryEstimate({interest:state.interest,selectedProduct:state.selectedProduct?.name||state.priorSelectedProduct,location:state.location,conversation:requirements});
           if(state.quoteSent){
@@ -241,7 +252,14 @@ export function handleTwilioMediaSocket(request,env,ctx){
             return;
           }
           if(!quote){
-            try{await createSalesHandoff(env,handoffPayload(requirements,"Cart compatibility or custom pricing review required"));await speak("That project needs a compatibility and pricing review, so I created a team handoff with the cart and build details we discussed.",generation,"buddy.estimate.needs-review");}
+            try{
+              const result=await createSalesHandoff(env,{...handoffPayload(requirements,"Cart compatibility or custom pricing review required"),notifyCustomer:true,messageType:"ebc-estimate-review-requested"});
+              state.estimateStatus="Review requested";
+              const delivered=result?.email?.ok===true;
+              await speak(delivered
+                ? `I emailed ${state.email||"the address on your request"} to confirm that your custom estimate review is underway. The EBC team will verify the cart fitment and pricing before sending the actual estimate. Would you prefer a phone consultation, or would you like to request a time to bring the cart in?`
+                : "I recorded the custom estimate request for the EBC team, but I couldn't confirm the email delivery. Would you prefer a phone consultation, or would you like to request a time to bring the cart in?",generation,"buddy.estimate.needs-review");
+            }
             catch(error){console.error("EBC sales handoff failed",{callSid:state.callSid,contactId:state.contactId,error:error?.message||String(error)});await speak("That project needs a compatibility review, and I couldn’t confirm the team handoff. Your conversation is still attached to this lead for review.",generation,"buddy.estimate.needs-review");}
             pushEvent({type:"buddy.estimate.needs-review",callSid:state.callSid,streamSid:state.streamSid,contactId:state.contactId,requirements,message:"Cart compatibility or custom pricing review required"});
             return;
@@ -264,13 +282,17 @@ export function handleTwilioMediaSocket(request,env,ctx){
         }
 
         const proposedAppointment=parseRequestedAppointment(clean,{timeZone:"America/New_York"});
-        if(requestsSalesAppointment(clean)||(state.appointmentOffered&&(confirmsEstimateDelivery(clean)||proposedAppointment))){
+        const bringInAppointment=requestsBringInAppointment(clean);
+        const phoneConsultation=requestsPhoneConsultation(clean);
+        if(requestsSalesAppointment(clean)||bringInAppointment||phoneConsultation||(state.appointmentOffered&&(confirmsEstimateDelivery(clean)||proposedAppointment))){
           const requirements=estimateRequirements(state,clean);
+          const appointmentType=bringInAppointment?"bring-in-evaluation":"phone-consultation";
+          const appointmentLabel=appointmentType==="bring-in-evaluation"?"in-shop cart evaluation":"phone consultation";
           try{
-            const result=await createSalesAppointment(env,{...handoffPayload(requirements,"Customer requested a build consultation"),action:"request",notes:requirements,timeZone:"America/New_York",startIso:proposedAppointment?.startIso||""});
+            const result=await createSalesAppointment(env,{...handoffPayload(requirements,`Customer requested an ${appointmentLabel}`),action:"request",appointmentType,notes:requirements,timeZone:"America/New_York",startIso:proposedAppointment?.startIso||""});
             state.appointmentStatus="Requested";state.appointmentStart=String(result?.appointment?.start||proposedAppointment?.startIso||"");
             const timeLine=proposedAppointment?` for ${proposedAppointment.label}`:"";
-            await speak(`I recorded your build consultation request${timeLine}. It is pending the team's approval, not booked yet. Once they approve it or suggest another time, you'll receive a confirmation by text or email.`,generation,"buddy.sales.appointment-requested");
+            await speak(`I recorded your ${appointmentLabel} request${timeLine}. It is pending the team's approval, not booked yet. Once they approve it or suggest another time, you'll receive a confirmation by text or email.`,generation,"buddy.sales.appointment-requested");
           }catch(error){
             console.error("EBC sales appointment request failed",{callSid:state.callSid,contactId:state.contactId,error:error?.message||String(error)});
             await speak("I couldn't confirm the appointment request, so I won't pretend it was booked. Your conversation is still attached to this lead for the sales team to review.",generation,"buddy.sales.appointment-failed");
@@ -385,9 +407,9 @@ export function handleTwilioMediaSocket(request,env,ctx){
     if(typeof event.data!=="string")return;let message;try{message=JSON.parse(event.data);}catch{return;}const type=String(message.event||"unknown");state.lastSequenceNumber=String(message.sequenceNumber||state.lastSequenceNumber||"");
     if(type==="connected"){console.log("Twilio media connected",{protocol:message.protocol||"",version:message.version||""});return;}
     if(type==="start"){
-      const start=message.start||{},params=start.customParameters||{};state.streamSid=String(start.streamSid||message.streamSid||"");state.callSid=String(start.callSid||"");state.accountSid=String(start.accountSid||"");state.contactId=String(params.contactId||"");state.firstName=String(params.firstName||"");state.lastName=String(params.lastName||"");state.phone=String(params.phone||"");state.email=String(params.email||"");state.interest=String(params.interest||"");state.location=String(params.location||"");state.comments=String(params.comments||"");state.leadScore=String(params.leadScore||"");state.preferredContactTime=String(params.preferredContactTime||"");state.triggerType=String(params.triggerType||"");state.tenantId=String(params.tenantId||state.tenantId);state.corporateId=String(params.corporateId||state.corporateId);state.locationId=String(params.locationId||state.locationId);const f=start.mediaFormat||{};
+      const start=message.start||{},params=start.customParameters||{};state.streamSid=String(start.streamSid||message.streamSid||"");state.callSid=String(start.callSid||"");state.accountSid=String(start.accountSid||"");state.contactId=String(params.contactId||"");state.firstName=String(params.firstName||"");state.lastName=String(params.lastName||"");state.phone=String(params.phone||"");state.email=String(params.email||"");state.interest=String(params.interest||"");state.location=String(params.location||"");state.comments=String(params.comments||"");state.leadScore=String(params.leadScore||"");state.preferredContactTime=String(params.preferredContactTime||"");state.triggerType=String(params.triggerType||"");state.priorSelectedProduct=String(params.selectedProduct||"");state.priorRequirementsSummary=String(params.requirementsSummary||"");state.estimateNumber=String(params.estimateNumber||"");state.estimateStatus=String(params.estimateStatus||"");state.appointmentStatus=String(params.appointmentStatus||"");state.appointmentStart=String(params.appointmentStart||"");state.callStatus=String(params.callStatus||"");state.quoteSent=Boolean(state.estimateNumber||state.estimateStatus.toLowerCase()==="sent");state.isFollowup=/^(?:sms-reply|email-call-link|customer-callback|manual|dashboard)$/i.test(state.triggerType)||Boolean(state.priorSelectedProduct||state.priorRequirementsSummary||state.estimateNumber||state.appointmentStatus||state.callStatus);if(state.priorSelectedProduct)state.selectedProduct=getBuddyDemoOptions(state.interest).find(option=>option.name===state.priorSelectedProduct)||{id:"persisted-selection",name:state.priorSelectedProduct};state.tenantId=String(params.tenantId||state.tenantId);state.corporateId=String(params.corporateId||state.corporateId);state.locationId=String(params.locationId||state.locationId);const f=start.mediaFormat||{};
       console.log("Twilio media stream started",{streamSid:state.streamSid,callSid:state.callSid,contactId:state.contactId,encoding:f.encoding||"",sampleRate:f.sampleRate||"",channels:f.channels||"",sttConfigured:Boolean(env.DEEPGRAM_API_KEY),buddyRuntimeConfigured:Boolean(env.BUDDY_RUNTIME_URL&&env.BUDDY_RUNTIME_TOKEN),premiumTtsConfigured:Boolean(env.OPENAI_API_KEY),demoChoices:getBuddyDemoOptions(state.interest).length});pushEvent({type:"stream.media.started",streamSid:state.streamSid,callSid:state.callSid,contactId:state.contactId,firstName:state.firstName,interest:state.interest,location:state.location,leadScore:state.leadScore,encoding:String(f.encoding||""),sampleRate:Number(f.sampleRate||0),channels:Number(f.channels||0)});startTranscription();
-      if(!state.openingSent){state.openingSent=true;const beginOpening=(async()=>{const status=await Promise.race([getContactStatus(env,state.contactId),sleep(500).then(()=>null)]);if(status){const prior=Array.isArray(status.recentConversation)?status.recentConversation:[];state.conversationHistory=prior.map(turn=>({role:turn.role==="assistant"?"assistant":"user",content:String(turn.content||"")})).filter(turn=>turn.content);state.priorRequirementsSummary=String(status.requirementsSummary||"");state.priorSelectedProduct=String(status.selectedProduct||"");state.estimateNumber=String(status.estimateNumber||"");state.quoteSent=Boolean(state.estimateNumber||String(status.estimateStatus||"").toLowerCase()==="sent");state.documentStatus=String(status.documentStatus||state.documentStatus);state.deliveryScheduled=Boolean(status.deliveryAt||String(status.deliveryStatus||"").toLowerCase()==="scheduled");state.appointmentStatus=String(status.appointmentStatus||"");state.appointmentStart=String(status.appointmentStart||"");if(state.priorSelectedProduct)state.selectedProduct=getBuddyDemoOptions(state.interest).find(option=>option.name===state.priorSelectedProduct)||{id:"persisted-selection",name:state.priorSelectedProduct};state.isFollowup=prior.length>0||Boolean(state.priorRequirementsSummary||state.estimateNumber||state.priorSelectedProduct||state.appointmentStatus);}state.contextLoaded=true;state.openingStartedAt=Date.now();const generation=++state.turnGeneration;const opening=openingText();state.conversationHistory.push({role:"assistant",content:opening});pushEvent({type:"buddy.conversation.context-loaded",callSid:state.callSid,streamSid:state.streamSid,contactId:state.contactId,isFollowup:state.isFollowup,priorTurns:Math.max(0,state.conversationHistory.length-1),estimateNumber:state.estimateNumber,triggerType:state.triggerType});await speak(opening,generation,state.isFollowup?"buddy.sales.followup-opening":"buddy.sales.opening");})();if(ctx?.waitUntil)ctx.waitUntil(beginOpening);else beginOpening.catch(error=>console.error("EBC AI opening failed",error));}
+      if(!state.openingSent){state.openingSent=true;const beginOpening=(async()=>{const status=await Promise.race([getContactStatus(env,state.contactId),sleep(1000).then(()=>null)]);if(status){const prior=Array.isArray(status.recentConversation)?status.recentConversation:[];state.conversationHistory=prior.map(turn=>({role:turn.role==="assistant"?"assistant":"user",content:String(turn.content||"")})).filter(turn=>turn.content);state.priorRequirementsSummary=String(status.requirementsSummary||state.priorRequirementsSummary||"");state.priorSelectedProduct=String(status.selectedProduct||state.priorSelectedProduct||"");state.estimateNumber=String(status.estimateNumber||state.estimateNumber||"");state.estimateStatus=String(status.estimateStatus||state.estimateStatus||"");state.callStatus=String(status.callStatus||state.callStatus||"");state.quoteSent=Boolean(state.estimateNumber||state.estimateStatus.toLowerCase()==="sent");state.documentStatus=String(status.documentStatus||state.documentStatus);state.deliveryScheduled=Boolean(status.deliveryAt||String(status.deliveryStatus||"").toLowerCase()==="scheduled");state.appointmentStatus=String(status.appointmentStatus||state.appointmentStatus||"");state.appointmentStart=String(status.appointmentStart||state.appointmentStart||"");if(state.priorSelectedProduct)state.selectedProduct=getBuddyDemoOptions(state.interest).find(option=>option.name===state.priorSelectedProduct)||{id:"persisted-selection",name:state.priorSelectedProduct};state.isFollowup=state.isFollowup||prior.length>0||Boolean(state.priorRequirementsSummary||state.estimateNumber||state.priorSelectedProduct||state.appointmentStatus||state.callStatus);}state.contextLoaded=true;state.openingStartedAt=Date.now();const generation=++state.turnGeneration;const opening=openingText();state.conversationHistory.push({role:"assistant",content:opening});pushEvent({type:"buddy.conversation.context-loaded",callSid:state.callSid,streamSid:state.streamSid,contactId:state.contactId,isFollowup:state.isFollowup,priorTurns:Math.max(0,state.conversationHistory.length-1),estimateNumber:state.estimateNumber,triggerType:state.triggerType});await speak(opening,generation,state.isFollowup?"buddy.sales.followup-opening":"buddy.sales.opening");})();if(ctx?.waitUntil)ctx.waitUntil(beginOpening);else beginOpening.catch(error=>console.error("EBC AI opening failed",error));}
       return;
     }
     if(type==="media"){const media=message.media||{},payload=String(media.payload||"");state.mediaChunks+=1;state.mediaBytes+=base64ByteLength(payload);state.lastTimestamp=String(media.timestamp||state.lastTimestamp||"");if(payload&&state.stt)state.stt.sendBase64(payload);if(state.mediaChunks%250===0)console.log("Twilio media heartbeat",{streamSid:state.streamSid,callSid:state.callSid,contactId:state.contactId,mediaChunks:state.mediaChunks,mediaBytes:state.mediaBytes,timestamp:state.lastTimestamp,transcriptCount:state.transcriptCount,responseCount:state.responseCount});return;}

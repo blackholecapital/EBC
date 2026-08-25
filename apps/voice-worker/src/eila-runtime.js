@@ -90,6 +90,10 @@ async function streamEvents(env, path, payload, handlers = {}) {
 
   const dispatch = async (item) => {
     if (item.type === "text.delta") text += String(item.delta || "");
+    if (item.type === "text.completed") {
+      if (item.text) text = String(item.text);
+      await handlers.onTextCompleted?.(text.trim(), item);
+    }
     if (item.type === "audio.chunk") {
       const audio = String(item.audio || "");
       if (audio) {
@@ -139,6 +143,7 @@ async function streamEvents(env, path, payload, handlers = {}) {
       );
     }
     if (error.partialAudio === undefined) error.partialAudio = audioBytes > 0;
+    if (error.partialText === undefined) error.partialText = text.trim();
     throw error;
   } finally {
     clearTimeout(firstAudioTimer);
