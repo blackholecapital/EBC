@@ -1,6 +1,6 @@
 name = "ebc-voice-worker"
 main = "src/index.js"
-compatibility_date = "2026-08-08"
+compatibility_date = "2026-08-25"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
@@ -52,6 +52,6 @@ queue = "ebc-communication-events"
 binding = "ANALYTICS"
 dataset = "ebc_voice_events"
 
-[[services]]
-binding = "CONCIERGE"
-service = "ebc-concierge-worker"
+# Voice reaches concierge through CONCIERGE_PUBLIC_URL and authenticates with
+# INTERNAL_CALL_SECRET. Keeping this as a URL breaks the voice/concierge
+# service-binding cycle and makes first deployment deterministic.

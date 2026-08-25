@@ -21,7 +21,7 @@ This keeps the existing ACE and Black Hole workers and their data untouched and 
 `wrangler deploy` from this repository targets EBC workers only. Before any release, this command must return no matches:
 
 ```bash
-rg 'name = "(blackhole|ace)-|service = "(blackhole|ace)-|queue = "(blackhole|ace)-|database_name = "(blackhole|ace)-' apps/*/wrangler.toml
+grep -En 'name = "(blackhole|ace)-|service = "(blackhole|ace)-|queue = "(blackhole|ace)-|database_name = "(blackhole|ace)-' apps/*/wrangler.toml
 ```
 
 The two D1 placeholders intentionally prevent a first production deployment until EBC databases have been created and their IDs copied into the TOMLs.
@@ -40,9 +40,41 @@ flowchart TD
 
 Cloudflare Queues allow multiple producers but only one active consumer for a queue. The EBC communication queue therefore has its own dashboard consumer and must not reuse the Black Hole communication queue.
 
-## 1. Create the EBC resources
+## Automated sidecar rollout
 
-Run from the repository root with an authenticated Wrangler session:
+The repository now owns the complete first-deploy path. On the Black Hole host:
+
+```bash
+export EBC_WORKSPACE_ROOT=/mnt/eila-hot-sidecar/workspace/ebc
+mkdir -p "$EBC_WORKSPACE_ROOT"
+git clone https://github.com/blackholecapital/EBC.git "$EBC_WORKSPACE_ROOT/repo"
+cd "$EBC_WORKSPACE_ROOT/repo"
+bash scripts/server/bootstrap-sidecar.sh
+
+export CLOUDFLARE_API_TOKEN='set-in-your-shell'
+export CLOUDFLARE_ACCOUNT_ID='set-in-your-shell'
+
+npm run cf:auth
+npm run cf:provision
+npm run cf:migrate
+npm run cf:deploy
+npm run cf:secrets
+npm run cf:verify
+```
+
+The bootstrap script is `scripts/server/bootstrap-sidecar.sh`. If the repository
+is already cloned, run it from the clone; it performs a fast-forward-only pull
+and installs the pinned Wrangler and dashboard dependencies.
+
+`cf:provision` is safe to rerun. It discovers or creates the two D1 databases,
+R2 bucket, four queues, and Pages project; discovers both D1 UUIDs; writes the
+ignored `.wrangler/ebc-resource-ids.env`; and renders the UUIDs into the local
+Wrangler files. The UUIDs are account identifiers, not credentials.
+
+## 1. Create the EBC resources manually
+
+The automated command above is preferred. For troubleshooting, these are the
+equivalent individual Wrangler commands:
 
 ```bash
 npx wrangler d1 create ebc-call-center-dashboard
@@ -55,7 +87,13 @@ npx wrangler queues create ebc-communication-events
 npx wrangler queues create ebc-communication-events-dlq
 ```
 
-Copy the two D1 IDs printed by Wrangler into both affected TOML files:
+Export the two D1 IDs printed by Wrangler and render the configs:
+
+```bash
+export EBC_DASHBOARD_D1_ID='dashboard-d1-uuid'
+export EBC_EVENTS_D1_ID='events-d1-uuid'
+npm run cf:render
+```
 
 | Placeholder | Replace in |
 | --- | --- |
@@ -64,22 +102,33 @@ Copy the two D1 IDs printed by Wrangler into both affected TOML files:
 
 Analytics Engine datasets are declared in the Wrangler environments and are created/connected during deployment.
 
+Initialize both databases with the tracked, idempotent schema:
+
+```bash
+npm run cf:migrate
+```
+
 ## 2. Configure EBC secrets
 
-Use `npx wrangler secret put NAME --config path/to/wrangler.toml`. The `INTERNAL_CALL_SECRET` value must be identical on dashboard, concierge, and voice.
+Export the available values using `scripts/cloudflare/env.example` as the key
+list, then run `npm run cf:secrets`. The script generates a shared
+`INTERNAL_CALL_SECRET` when one is not supplied and installs the identical value
+on dashboard, concierge, and voice. Provider values that are not exported are
+reported and skipped.
 
 | Worker | Secrets |
 | --- | --- |
-| Dashboard | `INTERNAL_CALL_SECRET` |
-| Concierge | `INTERNAL_CALL_SECRET`, DocuSign credentials, Google Calendar credentials |
+| Dashboard | `INTERNAL_CALL_SECRET`, Zoom credentials, LiveKit credentials |
+| Concierge | `INTERNAL_CALL_SECRET`, DocuSign credentials |
 | Voice | `INTERNAL_CALL_SECRET`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`, `DEEPGRAM_API_KEY`, runtime token, optional `OPENAI_API_KEY` |
 | SMS | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` |
 | Email | `RESEND_API_KEY`, `FROM_EMAIL` |
 
-Example:
+Manual example:
 
 ```bash
-npx wrangler secret put INTERNAL_CALL_SECRET --config apps/voice-worker/wrangler.toml
+npm run cf:auth
+printf '%s' "$INTERNAL_CALL_SECRET" | scripts/cloudflare/wrangler.sh secret put INTERNAL_CALL_SECRET --config apps/voice-worker/wrangler.toml
 ```
 
 Never place secret values in a TOML file or commit them to Git.
@@ -87,14 +136,7 @@ Never place secret values in a TOML file or commit them to Git.
 ## 3. Deploy in dependency order
 
 ```bash
-npx wrangler deploy --config apps/sms-worker/wrangler.toml
-npx wrangler deploy --config apps/email-worker/wrangler.toml
-npx wrangler deploy --config apps/voice-worker/wrangler.toml
-npx wrangler deploy --config apps/blackhole-concierge-worker/wrangler.toml
-npx wrangler deploy --config apps/dashboard/wrangler.toml
-
-npm --prefix apps/frontend run build
-npx wrangler pages deploy apps/frontend/dist --project-name ebc-call-center --config apps/frontend/wrangler.toml
+npm run cf:deploy
 ```
 
 The EBC voice environment uses the authenticated public concierge URL rather than a service binding. This removes the voice/concierge circular deployment dependency. Concierge-to-voice and dashboard-to-concierge remain private service bindings.
@@ -109,12 +151,31 @@ The EBC voice environment uses the authenticated public concierge URL rather tha
 ## 5. Validate the tenant boundary
 
 ```bash
-curl https://ebc-dashboard-worker.cryptocapitalgroupfl.workers.dev/api/health
-curl https://ebc-concierge-worker.cryptocapitalgroupfl.workers.dev/api/health
-curl https://ebc-voice-worker.cryptocapitalgroupfl.workers.dev/health
-curl https://ebc-sms-worker.cryptocapitalgroupfl.workers.dev/api/health
-curl https://ebc-email-worker.cryptocapitalgroupfl.workers.dev/api/health
+npm run cf:verify
 ```
+
+## 6. Enable GitHub-to-Cloudflare deployment
+
+`.github/workflows/deploy-cloudflare.yml` validates and deploys the complete
+stack on every relevant push to `main`, in dependency order. Configure this once
+after the first `cf:provision` run:
+
+```bash
+source .wrangler/ebc-resource-ids.env
+
+gh secret set CLOUDFLARE_API_TOKEN --repo blackholecapital/EBC
+gh secret set CLOUDFLARE_ACCOUNT_ID --repo blackholecapital/EBC
+gh variable set EBC_DASHBOARD_D1_ID --body "$EBC_DASHBOARD_D1_ID" --repo blackholecapital/EBC
+gh variable set EBC_EVENTS_D1_ID --body "$EBC_EVENTS_D1_ID" --repo blackholecapital/EBC
+gh variable set CLOUDFLARE_DEPLOY_ENABLED --body true --repo blackholecapital/EBC
+
+gh workflow run deploy-cloudflare.yml --repo blackholecapital/EBC
+```
+
+The API token needs only the EBC deployment permissions: Workers Scripts,
+Workers R2 Storage, D1, Queues, Pages, and Account Settings read. Keep provider
+secrets in Cloudflare Worker secrets; do not copy them into GitHub unless a
+future workflow must rotate them.
 
 Health output should report `tenantId: ebc`. Dashboard API responses also return `X-Tenant-Id`, `X-Corporate-Id`, and `X-Location-Id` headers.
 

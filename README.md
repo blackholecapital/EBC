@@ -35,4 +35,20 @@ npm --prefix apps/frontend run dev
 
 The Wrangler targets in this repository are EBC-only. The D1 database IDs are intentional placeholders so a production deployment cannot accidentally write to another tenant. Provisioning, secrets, deployment order, and validation are documented in [the EBC Cloudflare runbook](docs/cloudflare/EBC-TENANT-DEPLOYMENT.md).
 
+The activation pass includes pinned Wrangler tooling and repeatable commands:
+
+```bash
+npm ci
+npm --prefix apps/frontend ci
+npm run cf:provision
+npm run cf:migrate
+npm run cf:deploy
+npm run cf:secrets
+npm run cf:verify
+```
+
+The GitHub workflow stays disabled until the repository variable
+`CLOUDFLARE_DEPLOY_ENABLED=true` is set after the first successful manual
+deployment.
+
 Production activation work is tracked in [NEXT-STEPS.md](NEXT-STEPS.md).

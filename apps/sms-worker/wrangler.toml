@@ -1,6 +1,6 @@
 name = "ebc-sms-worker"
 main = "src/index.js"
-compatibility_date = "2026-08-10"
+compatibility_date = "2026-08-25"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]

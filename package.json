@@ -1,0 +1,21 @@
+{
+  "name": "ebc-cloudflare-stack",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "cf:auth": "scripts/cloudflare/wrangler.sh whoami",
+    "cf:provision": "scripts/cloudflare/provision.sh",
+    "cf:render": "node scripts/cloudflare/render-configs.mjs",
+    "cf:migrate": "scripts/cloudflare/migrate.sh",
+    "cf:secrets": "scripts/cloudflare/configure-secrets.sh",
+    "cf:deploy": "scripts/cloudflare/deploy.sh",
+    "cf:verify": "scripts/cloudflare/verify.sh",
+    "test": "npm --prefix apps/dashboard test && npm --prefix apps/frontend run lint && npm --prefix apps/frontend run build"
+  },
+  "devDependencies": {
+    "wrangler": "4.123.0"
+  }
+}

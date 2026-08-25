@@ -2,10 +2,14 @@
 
 ## Pass 2 — provision and connect
 
+- [x] Add idempotent EBC D1, R2, Queue, and Pages provisioning.
+- [x] Add tracked D1 bootstrap schema and a guarded D1-ID renderer.
+- [x] Remove the voice/concierge deployment cycle and pin current Wrangler/runtime dates.
+- [x] Add sidecar bootstrap, deployment, secret-sync, health verification, and GitHub Actions automation.
 - [ ] Create EBC-only D1 databases, R2 archive bucket, queues, and Analytics Engine datasets.
 - [ ] Replace the two guarded D1 ID placeholders in the Wrangler files.
 - [ ] Configure the shared internal-call secret across dashboard, concierge, and voice workers.
-- [ ] Add EBC Twilio, Resend, DocuSign, Google Calendar, Deepgram, and runtime credentials.
+- [ ] Add EBC Twilio, Resend, DocuSign, Zoom/LiveKit, Deepgram, and runtime credentials.
 - [ ] Assign the production EBC voice/SMS number and configure Twilio callbacks.
 - [ ] Record or select the approved male EBC Chatterbox reference voice for the 6900 runtime.
 - [ ] Deploy workers in dependency order, then publish the EBC Pages frontend.

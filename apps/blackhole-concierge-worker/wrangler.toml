@@ -3,7 +3,7 @@
 
 name = "ebc-concierge-worker"
 main = "src/index.js"
-compatibility_date = "2026-07-28"
+compatibility_date = "2026-08-25"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
