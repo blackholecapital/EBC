@@ -17,6 +17,7 @@ function naturalFirstName(value=""){const name=String(value||"").trim();return n
 function greetingOnly(value=""){return /^(?:hello|hello there|hi|hi there|hey|hey there|good morning|good afternoon|good evening)$/.test(normalizeUtterance(value));}
 function mentionsSigned(value=""){return /\b(signed|finished|done|submitted|sent it|completed)\b/i.test(String(value));}
 function cleanRuntimeToken(value=""){return String(value||"").replace(/[^A-Za-z0-9_-]/g,"");}
+function deepgramTtsEnabled(env){return String(env.VOICE_TTS_PROVIDER||"deepgram").toLowerCase()==="deepgram"&&Boolean(String(env.DEEPGRAM_API_KEY||"").trim());}
 function tenantContext(env,event={}){const payload=event.payload||{},contact=payload.contact||event.contact||{};return{tenantId:String(event.tenantId||payload.tenantId||env.TENANT_ID||"blackhole"),corporateId:String(event.corporateId||payload.corporateId||env.CORPORATE_ID||env.TENANT_ID||"blackhole"),locationId:String(event.locationId||payload.locationId||contact.locationId||contact.location_id||env.DEFAULT_LOCATION_ID||"corporate")};}
 
 async function emitEvent(env,event){
@@ -109,6 +110,29 @@ async function runtimeTwilioAudio(env,text){
   const r=await fetch(`${base}/tts/twilio`,{method:"POST",headers:{"content-type":"application/json","x-runtime-token":token},body:JSON.stringify({text})});
   if(!r.ok)throw new Error(`Buddy runtime TTS failed (${r.status}): ${(await r.text()).slice(0,240)}`);return new Uint8Array(await r.arrayBuffer());
 }
+async function streamDeepgramSpeech(env,text,onAudio){
+  const startedAt=Date.now();
+  const model=String(env.DEEPGRAM_TTS_MODEL||"aura-2-arcas-en").trim();
+  const url=new URL("https://api.deepgram.com/v1/speak");
+  url.searchParams.set("model",model);
+  url.searchParams.set("encoding","mulaw");
+  url.searchParams.set("sample_rate","8000");
+  url.searchParams.set("container","none");
+  const response=await fetch(url,{method:"POST",headers:{Authorization:`Token ${String(env.DEEPGRAM_API_KEY||"").trim()}`,"content-type":"application/json",accept:"audio/mulaw"},body:JSON.stringify({text:String(text||"")})});
+  if(!response.ok||!response.body)throw new Error(`Deepgram TTS failed (${response.status}): ${(await response.text().catch(()=>"")).slice(0,240)}`);
+  const reader=response.body.getReader();
+  let audioBytes=0,audioChunks=0,firstAudioMs=null;
+  while(true){
+    const {value,done}=await reader.read();
+    if(value?.length){
+      if(firstAudioMs===null)firstAudioMs=Date.now()-startedAt;
+      audioBytes+=value.length;audioChunks+=1;
+      if((await onAudio?.(bytesToBase64(value)))===false){await reader.cancel("call-turn-cancelled").catch(()=>{});return{cancelled:true,audioBytes,audioChunks,firstAudioMs,totalLatencyMs:Date.now()-startedAt,model};}
+    }
+    if(done)break;
+  }
+  return{cancelled:false,audioBytes,audioChunks,firstAudioMs,totalLatencyMs:Date.now()-startedAt,model};
+}
 async function conciergeRequest(env,path,payload){
   const secret=String(env.INTERNAL_CALL_SECRET||""); if(!secret)throw new Error("INTERNAL_CALL_SECRET is not configured for concierge handoff");
   const req=new Request(`https://concierge.internal${path}`,{method:"POST",headers:{"content-type":"application/json","x-internal-call-secret":secret},body:JSON.stringify(payload)});
@@ -147,6 +171,16 @@ export function handleTwilioMediaSocket(request,env,ctx){
     const openingEvent=eventType==="buddy.sales.opening"||eventType==="buddy.sales.followup-opening";
     if(generation!==state.turnGeneration)return;
     pushAssistantTranscript(text,eventType);
+    if(deepgramTtsEnabled(env)){
+      try{
+        const streamed=await streamDeepgramSpeech(env,text,(payload)=>{if(generation!==state.turnGeneration)return false;if(openingEvent)state.openingAudioStarted=true;sendTwilioAudioBase64(payload);return true;});
+        if(streamed.cancelled||generation!==state.turnGeneration)return;
+        state.responseCount+=1;const markName=`deepgram-${state.responseCount}-${Date.now()}`;if(openingEvent)state.openingMarkName=markName;sendTwilioMark(markName);
+        console.log("Deepgram streamed voice response sent",{callSid:state.callSid,contactId:state.contactId,responseText:text,audioBytes:streamed.audioBytes,audioChunks:streamed.audioChunks,firstAudioMs:streamed.firstAudioMs,totalLatencyMs:streamed.totalLatencyMs,model:streamed.model,eventType});
+        pushEvent({type:eventType,callSid:state.callSid,streamSid:state.streamSid,contactId:state.contactId,response:text,audioBytes:streamed.audioBytes,firstAudioMs:streamed.firstAudioMs,totalLatencyMs:streamed.totalLatencyMs,runtime:"deepgram-tts",ttsModel:streamed.model});
+        return;
+      }catch(error){console.error("Deepgram speech stream failed; falling back to EILA",{callSid:state.callSid,contactId:state.contactId,error:error?.message||String(error)});}
+    }
     if(eilaRuntimeEnabled(env)){
       try{
         const phrases=[String(text)];
@@ -175,6 +209,12 @@ export function handleTwilioMediaSocket(request,env,ctx){
     const preface = "";
     let responseText="";
     let transcriptRecorded=false;
+    if(deepgramTtsEnabled(env)){
+      responseText=await runtimeSalesReply(env,state,transcript,options);
+      if(generation!==state.turnGeneration)return "";
+      await speak(responseText,generation,eventType);
+      return responseText;
+    }
     if(eilaRuntimeEnabled(env)){
       try{
         const streamed=await streamEilaTurn(env,{prompt:runtimeSalesPrompt(state,transcript,options,preface),preface,sessionId:state.callSid,tenantId:state.tenantId,assistantName:String(env.ASSISTANT_NAME||"EBC AI"),metadata:{contactId:state.contactId,interest:state.interest,location:state.location,locationId:state.locationId}},{onAudio:(payload)=>{if(generation!==state.turnGeneration)return false;sendTwilioAudioBase64(payload);return true;},onTextCompleted:(text)=>{responseText=String(text||"").trim();if(responseText&&!transcriptRecorded){transcriptRecorded=true;pushAssistantTranscript(responseText,eventType,{runtime:"eila-voice-runtime"});}}});
