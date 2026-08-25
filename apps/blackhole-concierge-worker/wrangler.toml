@@ -1,0 +1,50 @@
+# Everything Built Custom concierge. The directory name remains for source compatibility;
+# every deployable target and binding in this file is EBC-only.
+
+name = "ebc-concierge-worker"
+main = "src/index.js"
+compatibility_date = "2026-07-28"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+TENANT_ID = "ebc"
+CORPORATE_ID = "ebc"
+DEFAULT_LOCATION_ID = "corporate"
+TENANT_MODE = "corporate-franchise"
+TENANT_PROFILE = "custom-cart-accessories"
+BRAND_NAME = "Everything Built Custom"
+ASSISTANT_NAME = "EBC AI"
+PUBLIC_BASE_URL = "https://ebc-concierge-worker.cryptocapitalgroupfl.workers.dev"
+DASHBOARD_URL = "https://ebc-dashboard-worker.cryptocapitalgroupfl.workers.dev"
+DOCUSIGN_BASE_PATH = "https://demo.docusign.net/restapi"
+DOCUSIGN_RETURN_URL = "https://ebc-concierge-worker.cryptocapitalgroupfl.workers.dev"
+DOCUSIGN_SELECTION_CUTOFF_MS = "1786309440000"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ebc-call-center-events"
+database_id = "REPLACE_WITH_EBC_EVENTS_D1_ID"
+
+[[r2_buckets]]
+binding = "DOCUMENT_ARCHIVE"
+bucket_name = "ebc-call-center-archive"
+
+[[services]]
+binding = "SMS"
+service = "ebc-sms-worker"
+
+[[services]]
+binding = "EMAIL"
+service = "ebc-email-worker"
+
+[[services]]
+binding = "VOICE"
+service = "ebc-voice-worker"
+
+[[queues.producers]]
+binding = "EVENTS"
+queue = "ebc-communication-events"
+
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "ebc_message_events"

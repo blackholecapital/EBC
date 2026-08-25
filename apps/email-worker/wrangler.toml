@@ -1,0 +1,22 @@
+name = "ebc-email-worker"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+TENANT_ID = "ebc"
+CORPORATE_ID = "ebc"
+DEFAULT_LOCATION_ID = "corporate"
+TENANT_MODE = "corporate-franchise"
+BRAND_NAME = "Everything Built Custom"
+BRAND_URL = "https://everythingbuiltcustom.com"
+BRAND_PRIMARY_COLOR = "#1c75bc"
+ASSISTANT_NAME = "EBC AI"
+
+[[queues.producers]]
+binding = "EVENTS"
+queue = "ebc-communication-events"
+
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "ebc_message_events"

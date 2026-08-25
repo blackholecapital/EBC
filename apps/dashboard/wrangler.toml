@@ -1,0 +1,72 @@
+# Everything Built Custom Cloudflare Module Worker configuration.
+# A plain `wrangler deploy` from this repository targets EBC-only resources.
+
+name = "ebc-dashboard-worker"
+main = "worker-entry.mjs"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./frontend"
+binding = "ASSETS"
+run_worker_first = true
+not_found_handling = "single-page-application"
+
+[vars]
+APP_VERSION = "ebc-corporate-v1"
+NODE_ENV = "production"
+LOG_LEVEL = "info"
+LOG_FORMAT = "json"
+DB_BACKEND = "d1"
+RUNTIME_TARGET = "edge"
+TENANT_ID = "ebc"
+CORPORATE_ID = "ebc"
+DEFAULT_LOCATION_ID = "corporate"
+TENANT_MODE = "corporate-franchise"
+TENANT_PROFILE = "custom-cart-accessories"
+BRAND_NAME = "Everything Built Custom"
+ASSISTANT_NAME = "EBC AI"
+DASHBOARD_PUBLIC_URL = "https://ebc-dashboard-worker.cryptocapitalgroupfl.workers.dev"
+LIVEKIT_URL = "wss://eila-7257eve9.livekit.cloud"
+LIVEKIT_MEETING_AGENT_NAME = "lemonslice"
+LIVE_VIDEO_BOT_NAME = "EILA · Everything Built Custom"
+ZOOM_USER_ID = "me"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ebc-call-center-dashboard"
+database_id = "REPLACE_WITH_EBC_DASHBOARD_D1_ID"
+
+[[d1_databases]]
+binding = "BUDDY_DB"
+database_name = "ebc-call-center-events"
+database_id = "REPLACE_WITH_EBC_EVENTS_D1_ID"
+
+[[r2_buckets]]
+binding = "TENANT_ARCHIVE"
+bucket_name = "ebc-call-center-archive"
+
+[[queues.producers]]
+binding = "FOLLOWUP_QUEUE"
+queue = "ebc-followup-jobs"
+
+[[queues.consumers]]
+queue = "ebc-followup-jobs"
+max_batch_size = 20
+max_retries = 3
+dead_letter_queue = "ebc-followup-jobs-dlq"
+
+[[queues.consumers]]
+queue = "ebc-communication-events"
+max_batch_size = 50
+max_batch_timeout = 5
+max_retries = 3
+dead_letter_queue = "ebc-communication-events-dlq"
+
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "ebc_dashboard_events"
+
+[[services]]
+binding = "CONCIERGE"
+service = "ebc-concierge-worker"

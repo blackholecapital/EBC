@@ -1,0 +1,14 @@
+name = "ebc-call-center"
+
+pages_build_output_dir = "dist"
+compatibility_date = "2026-08-14"
+compatibility_flags = ["nodejs_compat"]
+
+[[services]]
+binding = "DASHBOARD"
+service = "ebc-dashboard-worker"
+
+[vars]
+TENANT_ID = "ebc"
+CORPORATE_ID = "ebc"
+DEFAULT_LOCATION_ID = "corporate"

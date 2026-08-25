@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Everything Built Custom · Custom Cart Project</title>
+  <meta name="description" content="Request help with a custom golf cart or ATV build, wiring, power, fan, audio, lighting, programming, or fitment project from Everything Built Custom.">
+  <style>
+    :root{--red:#1c75bc;--red-dark:#155a91;--black:#0b0b0c;--ink:#18181b;--muted:#71717a;--line:#e4e4e7;--soft:#f5f5f6}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 15% 5%,rgba(28,117,188,.08),transparent 28%),var(--soft);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    a{color:inherit}.header{position:sticky;top:0;z-index:20;background:rgba(11,11,12,.96);border-bottom:3px solid var(--red);color:#fff;backdrop-filter:blur(14px)}.header-inner{max-width:1440px;margin:auto;padding:15px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:12px;text-decoration:none}.rack{width:46px;display:grid;gap:4px;transform:skewX(-10deg)}.rack i{height:9px;background:#fff;border-radius:2px;position:relative}.rack i:after{content:"";position:absolute;width:4px;height:4px;right:5px;top:2px;border-radius:50%;background:var(--red)}.brand strong{font-size:20px;font-weight:950;letter-spacing:-.04em}.brand b{color:var(--red);font-size:24px}.brand small{display:block;color:#a1a1aa;font-size:9px;font-weight:800;letter-spacing:.14em}.header nav{display:flex;align-items:center;gap:8px}.header nav a{text-decoration:none;color:#d4d4d8;font-size:12px;font-weight:800;padding:10px 12px;border-radius:8px}.header nav a:hover{background:#27272a;color:#fff}.header nav .dash{background:var(--red);color:#fff}
+    .hero{background:linear-gradient(120deg,#09090a,#19191c 64%,#102b4c);color:#fff;padding:42px 28px}.hero-inner{max-width:1180px;margin:auto;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:center}.eyebrow{color:#74b7e6;font-size:10px;font-weight:950;letter-spacing:.16em}.hero h1{font-size:clamp(34px,5vw,62px);line-height:.98;letter-spacing:-.055em;margin:10px 0 14px;max-width:780px}.hero p{max-width:680px;color:#c7c7cc;font-size:16px;line-height:1.6;margin:0}.hero-badge{width:210px;height:210px;border:1px solid #284b63;border-radius:28px;background:radial-gradient(circle,rgba(28,117,188,.35),rgba(28,117,188,.06) 55%,transparent 70%);color:#fff;display:grid;place-items:center;text-align:center;box-shadow:0 0 70px rgba(28,117,188,.17);font:inherit;cursor:pointer;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.hero-badge:hover{transform:translateY(-3px);border-color:#55a4d8;box-shadow:0 0 85px rgba(28,117,188,.3)}.hero-badge:focus-visible{outline:3px solid #fff;outline-offset:4px}.hero-badge:disabled{cursor:wait;opacity:.72}.hero-badge svg{width:58px;height:58px;color:#58a9df}.hero-badge strong,.hero-badge span{display:block}.hero-badge strong{font-size:18px;margin-top:8px}.hero-badge span{font-size:10px;color:#d0d0d5;margin-top:4px}.hero-badge-status{min-height:14px;margin-top:8px!important;color:#9bd0f1!important;font-weight:800}
+    .demo-strip{background:#fff;border-bottom:1px solid var(--line);padding:12px 28px}.demo-strip div{max-width:1180px;margin:auto;display:flex;align-items:center;justify-content:center;gap:12px;text-align:center;font-size:12px;font-weight:800;color:#4b4b52}.demo-strip b{color:var(--red-dark)}.live-dot{width:8px;height:8px;border-radius:50%;background:#25c87a;box-shadow:0 0 0 5px rgba(37,200,122,.1)}
+    .layout{max-width:1440px;margin:30px auto 55px;padding:0 24px;display:grid;grid-template-columns:245px minmax(420px,720px) 270px;gap:18px;align-items:start}.rail{display:grid;gap:14px;position:sticky;top:98px}.ad{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 9px 26px rgba(0,0,0,.05);position:relative;overflow:hidden}.ad:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--red)}.ad .tag{font-size:9px;color:var(--red-dark);font-weight:950;letter-spacing:.12em}.ad h3{font-size:17px;margin:8px 0 6px}.ad p{font-size:11px;line-height:1.5;color:var(--muted);margin:0}.ad strong{display:block;margin-top:13px;font-size:13px}.ad.ai{background:linear-gradient(145deg,#0b0b0c,#211214);color:#fff;border-color:#243d50;padding:22px}.ad.ai:before{width:100%;height:4px;bottom:auto;background:linear-gradient(90deg,var(--red),#63b0e1)}.ad.ai .tag{color:#63b0e1}.ad.ai h3{font-size:23px}.ad.ai p{color:#b7b7bd}.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}.chips span{border:1px solid #48484d;background:rgba(255,255,255,.04);padding:6px 8px;border-radius:999px;font-size:9px;font-weight:800}.ad-link{display:flex;align-items:center;justify-content:space-between;margin-top:16px;color:#fff;text-decoration:none;font-size:11px;font-weight:900}.ad-link b{color:#58a9df}
+    .lead-card{background:#fff;border:1px solid #dddde1;border-radius:16px;box-shadow:0 18px 46px rgba(0,0,0,.09);overflow:hidden}.card-top{padding:25px 28px;background:linear-gradient(125deg,#fff,#f4f9fc);border-bottom:1px solid #d7e9f5}.card-top h2{font-size:27px;letter-spacing:-.035em;margin:7px 0 7px}.card-top p{color:var(--muted);font-size:13px;line-height:1.5;margin:0}.form{padding:24px 28px 28px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:6px;margin-bottom:14px}.field label,.legend{font-size:11px;font-weight:850;color:#3f3f46}.required{color:var(--red)}input,select,textarea{width:100%;border:1px solid #d4d4d8;background:#fff;border-radius:8px;padding:11px 12px;color:#18181b;font:inherit;font-size:13px;transition:.15s}input:focus,select:focus,textarea:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(28,117,188,.1)}textarea{resize:vertical;min-height:92px}.choice{border:1px solid #e2e2e5;border-radius:9px;padding:12px;margin-bottom:14px}.choice legend{padding:0 5px}.radio-row{display:flex;flex-wrap:wrap;gap:9px}.radio-row label{display:flex;align-items:center;gap:6px;border:1px solid #dddde1;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:750;cursor:pointer}.radio-row input{width:auto;accent-color:var(--red)}.consent{background:#fafafa;border:1px solid #e1e1e4;border-radius:10px;padding:13px;margin:4px 0 17px}.consent label{display:flex;align-items:flex-start;gap:9px;font-size:10px;line-height:1.5;color:#56565d}.consent input{width:16px;height:16px;margin-top:1px;accent-color:var(--red);flex:0 0 auto}.legal{font-size:9px;color:#77777e;margin:8px 0 0 25px}.legal a{color:#155a91;font-weight:800}.submit{width:100%;border:0;border-radius:9px;background:linear-gradient(90deg,var(--red-dark),var(--red));color:#fff;padding:14px 18px;font-size:13px;font-weight:950;cursor:pointer;box-shadow:0 9px 22px rgba(28,117,188,.22)}.submit:hover{filter:brightness(1.06)}.submit:disabled{opacity:.6;cursor:wait}.status{min-height:20px;margin:12px 0 0;text-align:center;font-size:12px;font-weight:800}.status.success{color:#16794c}.status.error{color:#b51212}.secure{display:flex;align-items:center;justify-content:center;gap:6px;color:#85858c;font-size:9px;margin-top:8px}
+    .mobile-products{display:none}.footer{background:#0b0b0c;color:#a1a1aa;padding:25px;text-align:center;font-size:10px}.footer a{color:#d4d4d8;margin:0 8px}
+    @media(max-width:1050px){.layout{grid-template-columns:minmax(0,1fr) 270px;max-width:1000px}.left-rail{display:none}.hero-inner{grid-template-columns:1fr}.hero-badge{width:100%;height:auto;min-height:118px}.hero-badge svg{width:38px;height:38px}.mobile-products{display:flex;gap:7px;overflow:auto;padding:0 0 13px;margin-bottom:15px}.mobile-products span{white-space:nowrap;background:#fff;border:1px solid #dddde1;border-radius:999px;padding:8px 10px;font-size:10px;font-weight:800}}
+    .header{background:rgba(255,255,255,.97);color:#111}.brand img{display:block;width:207px;height:auto}.header nav a{color:#52525b}.header nav a:hover{background:#eef7fd;color:#111}.hero{background-image:linear-gradient(105deg,rgba(9,34,61,.94),rgba(21,90,145,.78)),url("https://everythingbuiltcustom.com/wp-content/uploads/2025/10/header-category-denago.jpg");background-size:cover;background-position:center}.ad.ai{background:linear-gradient(145deg,#0b0b0c,#102b4c)}
+    @media(max-width:760px){.header-inner{padding:12px 16px}.brand img{width:155px}.header nav a:not(.dash){display:none}.hero{padding:30px 18px}.hero h1{font-size:38px}.hero p{font-size:14px}.layout{display:block;margin-top:18px;padding:0 13px}.rail{position:static;margin-bottom:15px}.right-rail{grid-template-columns:1fr}.grid{grid-template-columns:1fr;gap:0}.form,.card-top{padding:20px}.radio-row{display:grid;grid-template-columns:repeat(3,1fr)}.radio-row label{justify-content:center;padding:9px 5px}.footer{margin-top:30px}}
+  </style>
+</head>
+<body>
+<header class="header">
+  <div class="header-inner">
+    <a class="brand" href="/lead/" aria-label="Everything Built Custom"><img src="https://everythingbuiltcustom.com/wp-content/uploads/2025/10/ebd-logo-header-color.png" alt="Everything Built Custom"></a>
+    <nav>
+      <a href="https://everythingbuiltcustom.com" target="_blank" rel="noopener">everythingbuiltcustom.com</a>
+      <a href="#request">Request Consultation</a>
+      <a class="dash" href="/">Open AI Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="eyebrow">EVERYTHING BUILT CUSTOM · CART & ATV ACCESSORIES</div>
+      <h1>Tell us what you want to build.</h1>
+      <p>Power, wiring, fans, audio, lighting, programming, enclosures, or something nobody sells yet—EBC will help you identify the right fit or go fully custom.</p>
+    </div>
+    <button class="hero-badge" id="liveVideoDemo" type="button" aria-describedby="liveVideoStatus">
+      <div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0-3 3.87V14a4 4 0 0 0 4 4h1v3h4v-3h1a4 4 0 0 0 4-4v-3.13A4 4 0 0 0 16 7V6a4 4 0 0 0-4-4Z"/><path d="M9 11h.01M15 11h.01M9.5 14.5c1.6 1 3.4 1 5 0"/></svg>
+        <strong>Try Live Video Demo</strong><span>One click · EILA joins Zoom</span>
+        <span class="hero-badge-status" id="liveVideoStatus" role="status" aria-live="polite"></span>
+      </div>
+    </button>
+  </div>
+</section>
+
+<div class="demo-strip"><div><span class="live-dot"></span><b>LIVE DEMO</b><span>Submit this form and watch the opportunity enter the EBC AI Call Center dashboard.</span></div></div>
+
+<main class="layout">
+  <aside class="rail left-rail" aria-label="Everything Built Custom services">
+    <article class="ad"><span class="tag">POWER</span><h3>G1 &amp; G2 Power Blocks</h3><p>Plug-and-play power for accessories without cutting factory wiring.</p><strong>From $139.99</strong></article>
+    <article class="ad"><span class="tag">COMFORT</span><h3>Fan Kits</h3><p>Front and rear high-power fan systems with speaker and LED upgrade options.</p><strong>From $399.99</strong></article>
+    <article class="ad"><span class="tag">AUDIO + LIGHTING</span><h3>Speaker Pods &amp; Adapters</h3><p>DS18-ready pods, LED rings, and warranty-friendly plug-and-play adapters.</p><strong>From $79.99</strong></article>
+    <article class="ad"><span class="tag">PERFORMANCE</span><h3>Programming &amp; Remote Assist</h3><p>Compatible cables and guided setup for speed, braking, torque, and more.</p><strong>From $69.99</strong></article>
+  </aside>
+
+  <section id="request">
+    <div class="mobile-products" aria-label="Products"><span>Power Blocks</span><span>Wire Kits</span><span>Fan Kits</span><span>Audio &amp; LED</span><span>Go Custom</span></div>
+    <form id="leadForm" class="lead-card" data-endpoint="/api/leads">
+      <div class="card-top">
+        <div class="eyebrow">START THE EBC AI WORKFLOW</div>
+        <h2>Start your custom cart project</h2>
+        <p>Give EBC the cart and project details. The AI concierge will route the request, answer initial questions, and prepare the team for the build.</p>
+      </div>
+      <div class="form">
+        <div class="grid">
+          <div class="field"><label for="first_name">First name <span class="required">*</span></label><input id="first_name" name="first_name" autocomplete="given-name" required></div>
+          <div class="field"><label for="last_name">Last name <span class="required">*</span></label><input id="last_name" name="last_name" autocomplete="family-name" required></div>
+        </div>
+        <div class="grid">
+          <div class="field"><label for="email">Email <span class="required">*</span></label><input id="email" name="email" type="email" autocomplete="email" required></div>
+          <div class="field"><label for="company">Company / shop</label><input id="company" name="company" autocomplete="organization" placeholder="Optional"></div>
+        </div>
+        <div class="grid">
+          <div class="field"><label for="phone">Phone <span class="required">*</span></label><input id="phone" name="phone" type="tel" autocomplete="tel" required></div>
+          <div class="field"><label for="preferred_store">Location / shipping region <span class="required">*</span></label><input id="preferred_store" name="preferred_store" autocomplete="address-level1" placeholder="City, state" required></div>
+        </div>
+        <div class="grid"><div class="field"><label for="cart_make">Cart / ATV make <span class="required">*</span></label><select id="cart_make" name="cart_make" required><option value="">Select make</option><option>Denago</option><option>Can-Am</option><option>Evolution</option><option>E-Z-GO</option><option>Honda</option><option>Polaris</option><option>Other</option></select></div><div class="field"><label for="cart_model">Model and year <span class="required">*</span></label><input id="cart_model" name="cart_model" placeholder="Example: 2025 Rover XL" required></div></div>
+        <div class="field"><label for="product_interest">What can Everything Built Custom help with? <span class="required">*</span></label><select id="product_interest" name="product_interest" required><option value="">Select a product or project</option><option>Power &amp; Fuse Blocks</option><option>Plug-and-Play Wire Kits</option><option>Fan Kits</option><option>Speaker &amp; LED Upgrades</option><option>Programming &amp; Remote Assist</option><option>Custom Roofs &amp; Enclosures</option><option>Compatibility &amp; Technical Support</option><option>Universal Accessories</option><option>Custom Project</option></select></div>
+        <div class="grid">
+          <div class="field"><label for="lead_source">How did you hear about Everything Built Custom?</label><select id="lead_source" name="lead_source"><option>everythingbuiltcustom.com</option><option>Referral</option><option>Conference / Event</option><option>Search</option><option>Existing customer</option><option>Other</option></select></div>
+          <div class="field"><label for="install_preference">How do you want it handled?</label><select id="install_preference" name="install_preference"><option>Not sure — help me decide</option><option>Ship me a plug-and-play kit</option><option>Local installation</option><option>Remote programming assistance</option><option>Custom fabrication consultation</option></select></div>
+        </div>
+        <fieldset class="choice">
+          <legend class="legend">Preferred contact method <span class="required">*</span></legend>
+          <div class="radio-row"><label><input type="radio" name="contact_method" value="Phone" required> Phone</label><label><input type="radio" name="contact_method" value="Text"> Text</label><label><input type="radio" name="contact_method" value="Email"> Email</label></div>
+        </fieldset>
+        <div class="field"><label for="comments">Tell us about the build</label><textarea id="comments" name="comments" placeholder="Accessories, wiring, colors, speakers, lighting, fitment questions, installation needs, timeline, or the custom idea you have in mind."></textarea></div>
+        <div class="consent">
+          <label><input type="checkbox" id="consent" name="consent"><span>I agree that Everything Built Custom may contact me at the number provided by calls or text messages concerning this inquiry, including through automated technology. Consent is not a condition of purchase. Message frequency varies. Message and data rates may apply. Reply STOP to opt out.</span></label>
+          <p class="legal"><a href="https://everythingbuiltcustom.com/terms-conditions/" target="_blank" rel="noopener">Terms &amp; Conditions</a></p>
+        </div>
+        <input type="hidden" name="owner" value="Everything Built Custom Web Lead">
+        <button id="submit" class="submit" type="submit">Start My Custom Project</button>
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+        <div class="secure">● Secure Everything Built Custom inquiry · Do not submit passwords or payment information</div>
+      </div>
+    </form>
+  </section>
+
+  <aside class="rail right-rail" aria-label="Everything Built Custom project help">
+    <article class="ad ai">
+      <span class="tag">CAN’T FIND IT?</span>
+      <h3>Go custom.</h3>
+      <p>Need a fuse block, wiring kit, speaker enclosure, roof, or one-off solution that does not exist yet? Start here and let EBC design the next move.</p>
+      <div class="chips"><span>Custom Wiring</span><span>Power</span><span>Fans</span><span>Audio &amp; LED</span><span>Fabrication</span></div>
+      <a class="ad-link" href="#request"><span>Request a custom project</span><b>→</b></a>
+    </article>
+    <article class="ad"><span class="tag">PLUG &amp; PLAY</span><h3>Keep the factory wiring intact.</h3><p>EBC specializes in clean installs and purpose-built adapters that reduce cutting, splicing, and guesswork.</p></article>
+    <article class="ad"><span class="tag">LIVE PIPELINE</span><h3>Watch the handoff</h3><p>After submitting, open the AI dashboard to see the lead scored and routed into operations.</p><a href="/" style="display:block;margin-top:13px;color:#155a91;font-size:11px;font-weight:900;text-decoration:none">Open dashboard →</a></article>
+  </aside>
+</main>
+
+<footer class="footer">Everything Built Custom · (727) 416-WIRE · <a href="https://everythingbuiltcustom.com/terms-conditions/">Terms</a><a href="/">AI Dashboard</a></footer>
+
+<script>
+(function(){
+  var form=document.getElementById("leadForm");
+  var button=document.getElementById("submit");
+  var status=document.getElementById("status");
+  var consent=document.getElementById("consent");
+  var methods=Array.prototype.slice.call(form.querySelectorAll('input[name="contact_method"]'));
+  var liveVideoButton=document.getElementById("liveVideoDemo");
+  var liveVideoStatus=document.getElementById("liveVideoStatus");
+
+  liveVideoButton.addEventListener("click",async function(){
+    var zoomWindow=window.open("about:blank","_blank");
+    liveVideoButton.disabled=true;
+    liveVideoStatus.textContent="Creating your room…";
+    try{
+      var response=await fetch("/api/live-video",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({topic:"Everything Built Custom live video demo",meetingUrl:""})});
+      var result=await response.json().catch(function(){return {};});
+      if(!response.ok||result.ok===false)throw new Error(result.error||("Video demo failed ("+response.status+")"));
+      var joinUrl=result.data&&result.data.joinUrl;
+      if(!joinUrl)throw new Error("Zoom did not return a meeting link");
+      liveVideoStatus.textContent="EILA dispatched · opening Zoom";
+      if(zoomWindow)zoomWindow.location.replace(joinUrl);
+      else window.location.assign(joinUrl);
+    }catch(error){
+      if(zoomWindow)zoomWindow.close();
+      liveVideoStatus.textContent=error instanceof Error?error.message:String(error);
+    }finally{
+      liveVideoButton.disabled=false;
+    }
+  });
+
+  function selectedMethod(){
+    var selected=methods.find(function(input){return input.checked;});
+    return selected ? selected.value : "";
+  }
+  function syncConsent(){
+    var method=selectedMethod();
+    consent.required=method==="Phone" || method==="Text";
+  }
+  methods.forEach(function(input){input.addEventListener("change",syncConsent);});
+
+  form.addEventListener("submit",async function(event){
+    event.preventDefault();
+    syncConsent();
+    if(!form.reportValidity())return;
+
+    button.disabled=true;
+    button.textContent="Sending to EBC AI...";
+    status.className="status";
+    status.textContent="";
+
+    var data=Object.fromEntries(new FormData(form).entries());
+    var method=data.contact_method || "";
+    var cart=[data.cart_make,data.cart_model].filter(Boolean).join(" ");
+    var handling=data.install_preference || "";
+    data.comments=[cart?"Cart: "+cart:"",handling?"Project handling: "+handling:"",data.comments||""].filter(Boolean).join(". ");
+    data.contact_time="As soon as possible";
+    data.name=((data.first_name || "")+" "+(data.last_name || "")).trim();
+    data.consent=consent.checked;
+    data.location_id="corporate";
+    data.tenantId="ebc";
+    data.corporateId="ebc";
+
+    try{
+      var response=await fetch(form.dataset.endpoint,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(data)});
+      var text=await response.text();
+      var result={};
+      try{result=text?JSON.parse(text):{};}catch(parseError){result={message:text};}
+      if(!response.ok || result.ok===false)throw new Error(result.error || result.message || ("Request failed ("+response.status+")"));
+
+      form.reset();
+      syncConsent();
+      status.className="status success";
+      if(method==="Phone")status.textContent="Lead created. EBC AI will call the number provided shortly.";
+      else if(method==="Text")status.textContent="Lead created. Check your phone for the Everything Built Custom follow-up.";
+      else status.textContent="Lead created. Your Everything Built Custom inquiry is now in the live dashboard.";
+    }catch(error){
+      status.className="status error";
+      status.textContent=error instanceof Error?error.message:String(error);
+    }finally{
+      button.disabled=false;
+      button.textContent="Start My Custom Project";
+    }
+  });
+})();
+</script>
+</body>
+</html>

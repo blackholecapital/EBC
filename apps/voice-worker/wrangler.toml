@@ -1,0 +1,57 @@
+name = "ebc-voice-worker"
+main = "src/index.js"
+compatibility_date = "2026-08-08"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+TENANT_ID = "ebc"
+CORPORATE_ID = "ebc"
+DEFAULT_LOCATION_ID = "corporate"
+TENANT_MODE = "corporate-franchise"
+TENANT_PROFILE = "custom-cart-accessories"
+BRAND_NAME = "Everything Built Custom"
+ASSISTANT_NAME = "EBC AI"
+CONCIERGE_PUBLIC_URL = "https://ebc-concierge-worker.cryptocapitalgroupfl.workers.dev"
+PUBLIC_BASE_URL = "https://ebc-voice-worker.cryptocapitalgroupfl.workers.dev"
+MEDIA_STREAM_URL = "wss://ebc-voice-worker.cryptocapitalgroupfl.workers.dev/twilio/media"
+DEEPGRAM_STT_MODEL = "nova-3"
+DEEPGRAM_ENDPOINTING_MS = "300"
+DEEPGRAM_UTTERANCE_END_MS = "1000"
+DEEPGRAM_FINAL_GRACE_MS = "900"
+DEEPGRAM_TERMINAL_GRACE_MS = "350"
+DEEPGRAM_NO_DELAY = "true"
+BARGE_IN_MIN_WORDS = "2"
+BARGE_IN_FINAL_MIN_CONFIDENCE = "0.78"
+BARGE_IN_INTERIM_MIN_CONFIDENCE = "0.88"
+BUDDY_RUNTIME_URL = "https://alley-voice.xyz-labs.xyz"
+EILA_RUNTIME_URL = "https://alley-voice.xyz-labs.xyz"
+EILA_RUNTIME_STREAMING = "true"
+# The RX 6900 runtime must provide a male reference at assets/voices/ebc/reference.wav.
+EILA_VOICE_ID = "ebc"
+EILA_FIRST_AUDIO_TIMEOUT_MS = "8000"
+EILA_TOTAL_TIMEOUT_MS = "30000"
+BUDDY_OPENAI_TTS_MODEL = "gpt-4o-mini-tts"
+BUDDY_OPENAI_TTS_VOICE = "onyx"
+BUDDY_OPENAI_TTS_SPEED = "0.98"
+BUDDY_OPENAI_TTS_INSTRUCTIONS = "Speak as EBC AI, a warm, confident American man representing Everything Built Custom. Sound like an experienced custom-cart project specialist: practical, natural, conversational, and never like an announcer or phone menu. Use clear phrasing, a relaxed pace, and brief natural pauses."
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+
+[version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[[queues.producers]]
+binding = "EVENTS"
+queue = "ebc-communication-events"
+
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "ebc_voice_events"
+
+[[services]]
+binding = "CONCIERGE"
+service = "ebc-concierge-worker"
