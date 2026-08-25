@@ -49,7 +49,7 @@ function hasKnownFitmentConflict(option, allText) {
   return denagoSpecific&&otherCart&&!/\bdenago\b/.test(text);
 }
 
-function bestCatalogOption(interest, selectedProduct, allText) {
+function bestCatalogOption(interest, selectedProduct, allText, allowCategoryFallback = false) {
   const options=BUDDY_DEMO_CATALOG[String(interest||"").trim()]||[];
   const selected=normalize(selectedProduct);
   if(selected){
@@ -57,7 +57,10 @@ function bestCatalogOption(interest, selectedProduct, allText) {
     if(exact)return hasKnownFitmentConflict(exact,allText)?null:exact;
   }
   const words=normalize(allText).split(/\s+/).filter(word=>word.length>=4);
-  return options.find(option=>!hasKnownFitmentConflict(option,allText)&&normalize(option.name).split(/\s+/).filter(word=>word.length>=4&&!['custom','project'].includes(word)).some(word=>words.includes(word)))||null;
+  const mentioned=options.find(option=>!hasKnownFitmentConflict(option,allText)&&normalize(option.name).split(/\s+/).filter(word=>word.length>=4&&!['custom','project'].includes(word)).some(word=>words.includes(word)));
+  if(mentioned)return mentioned;
+  if(!allowCategoryFallback)return null;
+  return options.find(option=>!option.needsReview&&Number.isFinite(Number(option.basePrice))&&!hasKnownFitmentConflict(option,allText))||null;
 }
 
 function buildProjectEstimate(option, location, allText) {
@@ -87,9 +90,9 @@ export const EBC_PRELIMINARY_ESTIMATES = Object.fromEntries(
   BASELINE_PRODUCTS.filter(option=>!option.needsReview&&option.basePrice!=null&&Number.isFinite(Number(option.basePrice))).map(option=>[option.id,buildProjectEstimate(option,"",option.name)]),
 );
 
-export function getEbcPreliminaryEstimate({ interest = "", location = "", conversation = "", selectedProduct = "" } = {}) {
+export function getEbcPreliminaryEstimate({ interest = "", location = "", conversation = "", selectedProduct = "", allowCategoryFallback = false } = {}) {
   const allText=`${interest} ${selectedProduct} ${location} ${conversation}`;
-  return buildProjectEstimate(bestCatalogOption(interest,selectedProduct,allText),location,allText);
+  return buildProjectEstimate(bestCatalogOption(interest,selectedProduct,allText,allowCategoryFallback),location,allText);
 }
 
 export function getBuddyDemoOptions(interest = "") {

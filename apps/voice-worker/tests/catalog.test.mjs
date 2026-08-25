@@ -29,6 +29,28 @@ test("routes custom fabrication to human pricing review", () => {
   assert.equal(quote, null);
 });
 
+test("uses a priced category fallback for an explicitly requested demo estimate", () => {
+  const quote = getEbcPreliminaryEstimate({
+    interest:"Power & Fuse Blocks",
+    conversation:"Please email me an estimate",
+    location:"Tampa",
+    allowCategoryFallback:true,
+  });
+  assert.equal(quote.serviceName, "G1 Power Block");
+  assert.equal(quote.monthlyTotal, 139.99);
+  assert.equal(quote.demoSample, true);
+});
+
+test("keeps the review gate when a category has no approved demo price", () => {
+  const quote = getEbcPreliminaryEstimate({
+    interest:"Custom Project",
+    conversation:"Please email me an estimate",
+    location:"Tampa",
+    allowCategoryFallback:true,
+  });
+  assert.equal(quote, null);
+});
+
 test("does not invent a priced product when cart fitment is unresolved", () => {
   const quote = getEbcPreliminaryEstimate({
     interest:"Custom Roofs & Enclosures",

@@ -39,13 +39,13 @@ function availableProducts(options=[]){
 }
 function requestsSalesFollowup(value=""){return /\b(sales|human|person|representative|transfer|callback|call back|appointment|schedule|proposal|quote|estimate)\b/i.test(String(value));}
 function requestsHumanHandoff(value=""){return /\b(sales(?:person| team)?|human|representative|transfer|callback|call back|have (?:someone|the team) call|talk to (?:someone|a person))\b/i.test(String(value));}
-function requestsSalesAppointment(value=""){return /\b(?:appointment|meeting|consultation)\b|\b(?:schedule|book|set up|arrange)\b.{0,35}\b(?:call|time|sales|meeting|appointment)\b|\b(?:available|availability)\b.{0,35}\b(?:today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday|\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/i.test(String(value));}
+export function requestsSalesAppointment(value=""){return /\b(?:appointment|meeting|consultation)\b|\b(?:schedule|book|set up|arrange|put|add)\b.{0,35}\b(?:call|time|sales|meeting|appointment|calendar)\b|\b(?:do|use|open|check|show)(?:\s+(?:the|your|our))?\s+calendar\b|\b(?:available|availability)\b.{0,35}\b(?:today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday|\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/i.test(String(value));}
 function requestsBringInAppointment(value=""){return /\b(?:bring|drop)(?: the cart| it| my cart| my vehicle)?\s+(?:in|off|down)\b|\b(?:in[- ]shop|service|inspection|evaluation)\s+(?:appointment|visit|time)\b|\b(?:appointment|visit|time)\b.{0,35}\b(?:bring|drop|shop|service|inspect|evaluation|look at)\b/i.test(String(value));}
 function requestsPhoneConsultation(value=""){return /\b(?:phone|telephone|sales|consultation)\s+(?:call|appointment|consultation)\b|\b(?:schedule|book|set up|arrange)\b.{0,35}\b(?:phone call|consultation call|sales call)\b/i.test(String(value));}
 function requestsEstimateDelivery(value=""){return /\b(?:email|send|prepare|create|get|receive)\b.{0,40}\b(?:estimate|quote|proposal)\b|\b(?:estimate|quote|proposal)\b.{0,40}\b(?:email|send|prepare|create|get|receive)\b/i.test(String(value));}
 function confirmsEstimateDelivery(value=""){return /\b(?:send|email)(?: it| that| the estimate| the quote)?(?: now| please)?\b|\byou can send it\b|^(?:yes|yes please|sure|okay|ok|go ahead|do it|please do)[.! ]*$/i.test(String(value).trim());}
 function offersEstimate(value=""){return /\b(?:email|send|prepare|put together|create)\b.{0,50}\b(?:estimate|quote|proposal)\b|\b(?:estimate|quote|proposal)\b.{0,50}\b(?:email|send|prepare|put together|create)\b/i.test(String(value));}
-function offersAppointment(value=""){return /\b(?:schedule|arrange|request|book)\b.{0,45}\b(?:meeting|appointment|sales call|time with (?:the )?sales)\b|\b(?:meeting|appointment|sales call)\b.{0,45}\b(?:schedule|arrange|request|book)\b/i.test(String(value));}
+export function offersAppointment(value=""){return /\b(?:schedule|arrange|request|book|put|add)\b.{0,45}\b(?:meeting|appointment|sales call|time with (?:the )?sales|calendar)\b|\b(?:meeting|appointment|sales call|calendar)\b.{0,45}\b(?:schedule|arrange|request|book|put|add)\b/i.test(String(value));}
 function requestsCallClose(value=""){return /\b(?:no thanks|no thank you|that(?:'s| is) (?:all|it)|nothing else|all set|i(?:'ll| will) (?:just )?review (?:it|the estimate)|goodbye|bye for now|have a good (?:day|night))\b/i.test(String(value));}
 function estimateRequirements(state,current=""){const turns=(state.conversationHistory||[]).filter(turn=>turn.role==="user").map(turn=>String(turn.content||"").trim()).filter(Boolean);if(current)turns.push(String(current).trim());return [...new Set(turns)].join(" ");}
 function runtimeSalesPrompt(state,transcript,options=[],preface=""){
@@ -286,7 +286,7 @@ export function handleTwilioMediaSocket(request,env,ctx){
         if(estimateIntent){
           state.quoteRequested=true;
           const requirements=estimateRequirements(state,clean);
-          const quote=getEbcPreliminaryEstimate({interest:state.interest,selectedProduct:state.selectedProduct?.name||state.priorSelectedProduct,location:state.location,conversation:requirements});
+          const quote=getEbcPreliminaryEstimate({interest:state.interest,selectedProduct:state.selectedProduct?.name||state.priorSelectedProduct,location:state.location,conversation:`${requirements} ${recentConversation(state)}`,allowCategoryFallback:true});
           if(state.quoteSent){
             await speak(`Your Everything Built Custom estimate ${state.estimateNumber||""} has already been emailed to ${state.email||"the address on your request"}.`,generation,"buddy.estimate.already-sent");
             return;
