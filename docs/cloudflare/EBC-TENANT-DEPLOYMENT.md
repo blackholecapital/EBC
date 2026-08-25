@@ -110,19 +110,30 @@ npm run cf:migrate
 
 ## 2. Configure EBC secrets
 
-Export the available values using `scripts/cloudflare/env.example` as the key
-list, then run `npm run cf:secrets`. The script generates a shared
-`INTERNAL_CALL_SECRET` when one is not supplied and installs the identical value
-on dashboard, concierge, and voice. Provider values that are not exported are
-reported and skipped.
+EBC uses the account-level `default_secrets_store` (`xyz-demo` credential
+profile) for reusable beta credentials. The Wrangler files bind only secret
+names and the non-sensitive store ID; Workers resolve values with the binding's
+asynchronous `get()` method. A direct Worker secret with the provider's normal
+variable name takes precedence, so a scaled customer can replace one or every
+shared credential without changing application code.
+
+Run `npm run cf:secrets` only for tenant-specific values. The script generates
+a shared `INTERNAL_CALL_SECRET` when one is not supplied and installs the
+identical value on dashboard, concierge, and voice.
 
 | Worker | Secrets |
 | --- | --- |
-| Dashboard | `INTERNAL_CALL_SECRET`, Zoom credentials, LiveKit credentials |
-| Concierge | `INTERNAL_CALL_SECRET`, DocuSign credentials |
-| Voice | `INTERNAL_CALL_SECRET`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`, `DEEPGRAM_API_KEY`, runtime token, optional `OPENAI_API_KEY` |
-| SMS | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` |
-| Email | `RESEND_API_KEY`, `FROM_EMAIL` |
+| Dashboard | Per-worker `INTERNAL_CALL_SECRET`; shared Zoom and LiveKit bindings |
+| Concierge | Per-worker `INTERNAL_CALL_SECRET` and DocuSign RSA key; shared Google and DocuSign ID bindings |
+| Voice | Per-worker `INTERNAL_CALL_SECRET`, `TWILIO_PHONE_NUMBER`, optional `OPENAI_API_KEY`; shared Twilio auth, Deepgram, and runtime bindings |
+| SMS | Per-worker `TWILIO_PHONE_NUMBER`; shared Twilio auth bindings |
+| Email | Per-worker `FROM_EMAIL`; shared Resend binding |
+
+Lemon/LemonSlice credentials are intentionally not attached to EBC Workers.
+The dashboard dispatches the existing LiveKit `lemonslice` agent, and that
+avatar runtime owns its own Lemon credentials. DocuSign remains disabled until
+`DOCUSIGN_RSA_PRIVATE_KEY` is added directly to the concierge Worker because a
+typical RSA PEM exceeds Secrets Store's 1024-byte value limit.
 
 Manual example:
 
@@ -172,10 +183,10 @@ gh variable set CLOUDFLARE_DEPLOY_ENABLED --body true --repo blackholecapital/EB
 gh workflow run deploy-cloudflare.yml --repo blackholecapital/EBC
 ```
 
-The API token needs only the EBC deployment permissions: Workers Scripts,
-Workers R2 Storage, D1, Queues, Pages, and Account Settings read. Keep provider
-secrets in Cloudflare Worker secrets; do not copy them into GitHub unless a
-future workflow must rotate them.
+The API token needs the EBC deployment permissions: Workers Scripts, Workers R2
+Storage, D1, Queues, Pages, Account Settings read, and permission to deploy
+Secrets Store bindings (`Secrets Store Deployer` role or equivalent account
+permission). Keep provider secret values out of GitHub.
 
 Health output should report `tenantId: ebc`. Dashboard API responses also return `X-Tenant-Id`, `X-Corporate-Id`, and `X-Location-Id` headers.
 

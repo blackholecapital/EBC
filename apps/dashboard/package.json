@@ -9,7 +9,7 @@
     "dev:edge": "npx wrangler dev",
     "deploy:edge": "npx wrangler deploy",
     "seed": "node scripts/seed/seed.js",
-    "test": "node tests/demo-cleanup.test.js && node tests/lead-intelligence.test.js && node tests/contracts.test.js && node tests/async-workflows.test.js && node tests/integration.test.js && node tests/security-auth.test.js && node tests/live-video.test.js",
+    "test": "node tests/shared-secrets.test.js && node tests/demo-cleanup.test.js && node tests/lead-intelligence.test.js && node tests/contracts.test.js && node tests/async-workflows.test.js && node tests/integration.test.js && node tests/security-auth.test.js && node tests/live-video.test.js",
     "test:acceptance": "node tests/acceptance-sweep.js",
     "test:security": "node tests/security-auth.test.js",
     "test:contracts": "node tests/contracts.test.js",

@@ -8,10 +8,21 @@ TENANT_ID = "ebc"
 CORPORATE_ID = "ebc"
 DEFAULT_LOCATION_ID = "corporate"
 TENANT_MODE = "corporate-franchise"
+CREDENTIAL_PROFILE = "xyz-demo"
 BRAND_NAME = "Everything Built Custom"
 ASSISTANT_NAME = "EBC AI"
 PUBLIC_BASE_URL = "https://ebc-sms-worker.cryptocapitalgroupfl.workers.dev"
 EBC_SMS_WEBHOOK_URL = "https://ebc-voice-worker.cryptocapitalgroupfl.workers.dev/twilio/sms"
+
+[[secrets_store_secrets]]
+binding = "SHARED_TWILIO_ACCOUNT_SID"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_TWILIO_ACCOUNT_SID"
+
+[[secrets_store_secrets]]
+binding = "SHARED_TWILIO_AUTH_TOKEN"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_TWILIO_AUTH_TOKEN"
 
 [observability]
 enabled = true

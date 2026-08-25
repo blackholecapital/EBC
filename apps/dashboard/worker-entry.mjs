@@ -21,6 +21,15 @@ import templates from "./backend/layers/domain/templates.js";
 import buddyEvents from "./backend/layers/domain/buddy-events.js";
 import campaignSendJob from "./worker/jobs/campaign-send/index.js";
 import followupCheckJob from "./worker/jobs/followup-check/index.js";
+import { hydrateSharedSecrets } from "../shared/cloudflare-secrets.mjs";
+
+const SHARED_SECRET_MAPPINGS = [
+  { target:"LIVEKIT_API_KEY", binding:"SHARED_LIVEKIT_API_KEY" },
+  { target:"LIVEKIT_API_SECRET", binding:"SHARED_LIVEKIT_API_SECRET" },
+  { target:"ZOOM_ACCOUNT_ID", binding:"SHARED_ZOOM_ACCOUNT_ID" },
+  { target:"ZOOM_CLIENT_ID", binding:"SHARED_ZOOM_CLIENT_ID" },
+  { target:"ZOOM_CLIENT_SECRET", binding:"SHARED_ZOOM_CLIENT_SECRET" },
+];
 
 let memoryBackendSet = false;
 
@@ -131,6 +140,7 @@ function htmlResponse(status, html, correlationId, requestId, workerEnv, source 
 
 export default {
   async fetch(request, workerEnv, ctx) {
+    workerEnv = await hydrateSharedSecrets(workerEnv, SHARED_SECRET_MAPPINGS);
     env.setBindings(workerEnv);
     await initPersistence(workerEnv);
     initQueue(workerEnv);
@@ -193,6 +203,7 @@ export default {
   },
 
   async queue(batch, workerEnv, ctx) {
+    workerEnv = await hydrateSharedSecrets(workerEnv, SHARED_SECRET_MAPPINGS);
     env.setBindings(workerEnv);
     await initPersistence(workerEnv);
 

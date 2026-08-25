@@ -1,4 +1,10 @@
 import { inboundSmsTarget, twilioFormSignature, validateTwilioFormRequest } from "./inbound.js";
+import { hydrateSharedSecrets } from "../../shared/cloudflare-secrets.mjs";
+
+const SHARED_SECRET_MAPPINGS = [
+  { target:"TWILIO_ACCOUNT_SID", binding:"SHARED_TWILIO_ACCOUNT_SID" },
+  { target:"TWILIO_AUTH_TOKEN", binding:"SHARED_TWILIO_AUTH_TOKEN" },
+];
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
@@ -148,6 +154,7 @@ async function routeInboundSms(env, body = {}) {
 
 export default {
   async fetch(request, env) {
+    env = await hydrateSharedSecrets(env, SHARED_SECRET_MAPPINGS);
     const url = new URL(request.url);
 
     if (url.pathname === "/" || url.pathname === "/api/health") {

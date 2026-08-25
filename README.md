@@ -47,6 +47,13 @@ npm run cf:secrets
 npm run cf:verify
 ```
 
+EBC is the first tenant using the account-level `xyz-demo` credential profile.
+LiveKit, Zoom, Twilio authentication, Deepgram, the shared voice runtime,
+Resend, Google OAuth, and the usable DocuSign IDs are bound from Cloudflare
+Secrets Store. Direct Worker secrets override the shared values automatically.
+Only EBC-specific channel identity (`TWILIO_PHONE_NUMBER`, `FROM_EMAIL`), the
+internal service secret, and DocuSign's RSA private key remain per-worker.
+
 The GitHub workflow stays disabled until the repository variable
 `CLOUDFLARE_DEPLOY_ENABLED=true` is set after the first successful manual
 deployment.

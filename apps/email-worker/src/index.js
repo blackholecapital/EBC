@@ -1,5 +1,11 @@
 const RESEND_URL = "https://api.resend.com/emails";
 
+import { hydrateSharedSecrets } from "../../shared/cloudflare-secrets.mjs";
+
+const SHARED_SECRET_MAPPINGS = [
+  { target:"RESEND_API_KEY", binding:"SHARED_RESEND_API_KEY" },
+];
+
 function esc(value = "") {
   return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
@@ -33,6 +39,7 @@ async function emit(env, event) {
 
 export default {
   async fetch(request, env) {
+    env = await hydrateSharedSecrets(env, SHARED_SECRET_MAPPINGS);
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return new Response(null, { status:204 });
     if (url.pathname === "/api/health") return Response.json({ ok:true, service:env.TENANT_ID === "ebc" ? "ebc-email-worker" : "blackhole-email-worker", provider:"resend", health:"online", configured:Boolean(env.RESEND_API_KEY&&env.FROM_EMAIL), fromConfigured:Boolean(env.FROM_EMAIL), tenant:tenantContext(env) });

@@ -1,5 +1,14 @@
 import { handleTwilioMediaSocket } from "./media.js";
 import { eilaRuntimeEnabled } from "./eila-runtime.js";
+import { hydrateSharedSecrets } from "../../shared/cloudflare-secrets.mjs";
+
+const SHARED_SECRET_MAPPINGS = [
+  { target:"TWILIO_ACCOUNT_SID", binding:"SHARED_TWILIO_ACCOUNT_SID" },
+  { target:"TWILIO_AUTH_TOKEN", binding:"SHARED_TWILIO_AUTH_TOKEN" },
+  { target:"DEEPGRAM_API_KEY", binding:"SHARED_DEEPGRAM_API_KEY" },
+  { target:"EILA_RUNTIME_TOKEN", binding:"SHARED_RUNTIME_TOKEN" },
+  { target:"BUDDY_RUNTIME_TOKEN", binding:"SHARED_RUNTIME_TOKEN" },
+];
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
@@ -165,6 +174,7 @@ function buildFallbackTwiml(env, context) {
 
 export default {
   async fetch(request, env, ctx) {
+    env = await hydrateSharedSecrets(env, SHARED_SECRET_MAPPINGS);
     const url = new URL(request.url);
 
     if (url.pathname === "/twilio/media") return handleTwilioMediaSocket(request, env, ctx);

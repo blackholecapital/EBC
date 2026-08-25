@@ -8,10 +8,16 @@ TENANT_ID = "ebc"
 CORPORATE_ID = "ebc"
 DEFAULT_LOCATION_ID = "corporate"
 TENANT_MODE = "corporate-franchise"
+CREDENTIAL_PROFILE = "xyz-demo"
 BRAND_NAME = "Everything Built Custom"
 BRAND_URL = "https://everythingbuiltcustom.com"
 BRAND_PRIMARY_COLOR = "#1c75bc"
 ASSISTANT_NAME = "EBC AI"
+
+[[secrets_store_secrets]]
+binding = "SHARED_RESEND_API_KEY"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_RESEND_API_KEY"
 
 [[queues.producers]]
 binding = "EVENTS"

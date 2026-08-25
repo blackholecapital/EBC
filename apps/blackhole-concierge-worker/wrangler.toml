@@ -12,6 +12,7 @@ CORPORATE_ID = "ebc"
 DEFAULT_LOCATION_ID = "corporate"
 TENANT_MODE = "corporate-franchise"
 TENANT_PROFILE = "custom-cart-accessories"
+CREDENTIAL_PROFILE = "xyz-demo"
 BRAND_NAME = "Everything Built Custom"
 ASSISTANT_NAME = "EBC AI"
 PUBLIC_BASE_URL = "https://ebc-concierge-worker.cryptocapitalgroupfl.workers.dev"
@@ -19,6 +20,36 @@ DASHBOARD_URL = "https://ebc-dashboard-worker.cryptocapitalgroupfl.workers.dev"
 DOCUSIGN_BASE_PATH = "https://demo.docusign.net/restapi"
 DOCUSIGN_RETURN_URL = "https://ebc-concierge-worker.cryptocapitalgroupfl.workers.dev"
 DOCUSIGN_SELECTION_CUTOFF_MS = "1786309440000"
+
+[[secrets_store_secrets]]
+binding = "SHARED_GOOGLE_CLIENT_ID"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_GOOGLE_CLIENT_ID"
+
+[[secrets_store_secrets]]
+binding = "SHARED_GOOGLE_CLIENT_SECRET"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_GOOGLE_CLIENT_SECRET"
+
+[[secrets_store_secrets]]
+binding = "SHARED_GOOGLE_REFRESH_TOKEN"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_GOOGLE_REFRESH_TOKEN"
+
+[[secrets_store_secrets]]
+binding = "SHARED_DOCUSIGN_ACCOUNT_ID"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_DOCUSIGN_ACCOUNT_ID"
+
+[[secrets_store_secrets]]
+binding = "SHARED_DOCUSIGN_INTEGRATION_KEY"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_DOCUSIGN_INTEGRATION_KEY"
+
+[[secrets_store_secrets]]
+binding = "SHARED_DOCUSIGN_USER_ID"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_DOCUSIGN_USER_ID"
 
 [[d1_databases]]
 binding = "DB"

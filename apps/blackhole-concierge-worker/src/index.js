@@ -5,6 +5,16 @@ import { rememberSmsContact, getSmsContact, getSmsContactById } from "./sms-sess
 import { createDeliveryEvent, googleCalendarConfigured, googleCalendarTimeZone, isSlotAvailable } from "./google-calendar.js";
 import { isEbcCallbackReply } from "./sms-reply.js";
 import { nextAppointmentRequest } from "./appointment-request.js";
+import { hydrateSharedSecrets } from "../../shared/cloudflare-secrets.mjs";
+
+const SHARED_SECRET_MAPPINGS = [
+  { target:"GOOGLE_CLIENT_ID", binding:"SHARED_GOOGLE_CLIENT_ID" },
+  { target:"GOOGLE_CLIENT_SECRET", binding:"SHARED_GOOGLE_CLIENT_SECRET" },
+  { target:"GOOGLE_REFRESH_TOKEN", binding:"SHARED_GOOGLE_REFRESH_TOKEN" },
+  { target:"DOCUSIGN_ACCOUNT_ID", binding:"SHARED_DOCUSIGN_ACCOUNT_ID" },
+  { target:"DOCUSIGN_INTEGRATION_KEY", binding:"SHARED_DOCUSIGN_INTEGRATION_KEY" },
+  { target:"DOCUSIGN_USER_ID", binding:"SHARED_DOCUSIGN_USER_ID" },
+];
 
 async function sha256(value) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(value)));
@@ -278,6 +288,7 @@ async function scheduleDelivery(env,payload={}){
 }
 
 export default { async fetch(request,env,ctx){
+  env=await hydrateSharedSecrets(env,SHARED_SECRET_MAPPINGS);
   const url=new URL(request.url);
   if(url.pathname==="/api/health")return Response.json({ok:true,service:env.TENANT_ID==="ebc"?"ebc-concierge-worker":"blackhole-concierge-worker",health:"online",runtime:"edge",tenant:tenantContext(env),docusign:docusignConfigured(env)?"configured":"not-configured",googleCalendar:googleCalendarConfigured(env)?"configured":"not-configured",googleCalendarTimeZone:googleCalendarTimeZone(env)});
   if(url.pathname==="/docusign/consent-complete")return new Response(`DocuSign consent granted. You can close this tab and return to ${assistantName(env)}.`,{status:200,headers:{"Content-Type":"text/plain; charset=utf-8"}});

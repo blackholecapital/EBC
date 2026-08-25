@@ -24,6 +24,7 @@ CORPORATE_ID = "ebc"
 DEFAULT_LOCATION_ID = "corporate"
 TENANT_MODE = "corporate-franchise"
 TENANT_PROFILE = "custom-cart-accessories"
+CREDENTIAL_PROFILE = "xyz-demo"
 BRAND_NAME = "Everything Built Custom"
 ASSISTANT_NAME = "EBC AI"
 DASHBOARD_PUBLIC_URL = "https://ebc-dashboard-worker.cryptocapitalgroupfl.workers.dev"
@@ -31,6 +32,31 @@ LIVEKIT_URL = "wss://eila-7257eve9.livekit.cloud"
 LIVEKIT_MEETING_AGENT_NAME = "lemonslice"
 LIVE_VIDEO_BOT_NAME = "EILA · Everything Built Custom"
 ZOOM_USER_ID = "me"
+
+[[secrets_store_secrets]]
+binding = "SHARED_LIVEKIT_API_KEY"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_LIVEKIT_API_KEY"
+
+[[secrets_store_secrets]]
+binding = "SHARED_LIVEKIT_API_SECRET"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_LIVEKIT_API_SECRET"
+
+[[secrets_store_secrets]]
+binding = "SHARED_ZOOM_ACCOUNT_ID"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_ZOOM_ACCOUNT_ID"
+
+[[secrets_store_secrets]]
+binding = "SHARED_ZOOM_CLIENT_ID"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_ZOOM_CLIENT_ID"
+
+[[secrets_store_secrets]]
+binding = "SHARED_ZOOM_CLIENT_SECRET"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_ZOOM_CLIENT_SECRET"
 
 [[d1_databases]]
 binding = "DB"

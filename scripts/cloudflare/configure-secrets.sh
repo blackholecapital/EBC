@@ -41,24 +41,20 @@ for config in \
   put_secret "$config" INTERNAL_CALL_SECRET "$INTERNAL_CALL_SECRET"
 done
 
-for key in ZOOM_ACCOUNT_ID ZOOM_CLIENT_ID ZOOM_CLIENT_SECRET LIVEKIT_API_KEY LIVEKIT_API_SECRET; do
-  put_if_set apps/dashboard/wrangler.toml "$key"
-done
-
-for key in DOCUSIGN_ACCOUNT_ID DOCUSIGN_INTEGRATION_KEY DOCUSIGN_USER_ID DOCUSIGN_RSA_PRIVATE_KEY DOCUSIGN_CONSENT_REDIRECT_URI; do
+for key in DOCUSIGN_RSA_PRIVATE_KEY DOCUSIGN_CONSENT_REDIRECT_URI; do
   put_if_set apps/blackhole-concierge-worker/wrangler.toml "$key"
 done
 
-for key in TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN TWILIO_PHONE_NUMBER DEEPGRAM_API_KEY EILA_RUNTIME_TOKEN OPENAI_API_KEY; do
+for key in TWILIO_PHONE_NUMBER OPENAI_API_KEY; do
   put_if_set apps/voice-worker/wrangler.toml "$key"
 done
 
-for key in TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN TWILIO_PHONE_NUMBER; do
+for key in TWILIO_PHONE_NUMBER; do
   put_if_set apps/sms-worker/wrangler.toml "$key"
 done
 
-for key in RESEND_API_KEY FROM_EMAIL; do
+for key in FROM_EMAIL; do
   put_if_set apps/email-worker/wrangler.toml "$key"
 done
 
-echo "Secret sync finished. Skipped values remain unconfigured."
+echo "Tenant-specific secret sync finished. Shared demo providers come from the account Secrets Store bindings."
