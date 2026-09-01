@@ -33,6 +33,7 @@ for config in \
   apps/sms-worker/wrangler.toml \
   apps/email-worker/wrangler.toml \
   apps/voice-worker/wrangler.toml \
+  apps/video-worker/wrangler.toml \
   apps/blackhole-concierge-worker/wrangler.toml \
   apps/dashboard/wrangler.toml; do
   "$WRANGLER" deploy --config "$config"

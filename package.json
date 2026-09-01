@@ -13,7 +13,7 @@
     "cf:secrets": "scripts/cloudflare/configure-secrets.sh",
     "cf:deploy": "scripts/cloudflare/deploy.sh",
     "cf:verify": "scripts/cloudflare/verify.sh",
-    "test": "npm --prefix apps/dashboard test && npm --prefix apps/frontend run lint && npm --prefix apps/frontend run build"
+    "test": "node scripts/test-video-isolation.mjs && npm --prefix apps/video-worker test && npm --prefix apps/dashboard test && npm --prefix apps/frontend run lint && npm --prefix apps/frontend run build"
   },
   "devDependencies": {
     "wrangler": "4.123.0"

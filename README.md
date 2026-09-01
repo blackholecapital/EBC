@@ -22,6 +22,8 @@ A dedicated sales, project-intake, and operations stack for [Everything Built Cu
 | `apps/voice-worker` | Twilio call flow, EBC product catalog, realtime AI, and TTS |
 | `apps/sms-worker` | Dedicated EBC inbound/outbound SMS routing |
 | `apps/email-worker` | Branded welcome, estimate, agreement, and appointment email |
+| `apps/video-worker` | EBC-only LiveKit session broker and LemonSlice relay |
+| `apps/livekit-avatar-agent` | EBC-only EILA dashboard-support avatar agent |
 | `apps/eila-voice-runtime` | Shared self-hosted realtime language and Chatterbox voice runtime |
 
 ## Local frontend
@@ -35,11 +37,16 @@ npm --prefix apps/frontend run dev
 
 The Wrangler targets in this repository are EBC-only. The D1 database IDs are intentional placeholders so a production deployment cannot accidentally write to another tenant. Provisioning, secrets, deployment order, and validation are documented in [the EBC Cloudflare runbook](docs/cloudflare/EBC-TENANT-DEPLOYMENT.md).
 
+EBC is a sovereign product module. Agents and contributors must not modify or
+couple EBC releases to `blackholecapital/cloudflare-platform` or another product
+repository. The enforceable agent boundary is recorded in [AGENTS.md](AGENTS.md).
+
 The activation pass includes pinned Wrangler tooling and repeatable commands:
 
 ```bash
 npm ci
 npm --prefix apps/frontend ci
+npm --prefix apps/video-worker ci
 npm run cf:provision
 npm run cf:migrate
 npm run cf:deploy

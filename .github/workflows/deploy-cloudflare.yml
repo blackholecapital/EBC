@@ -42,12 +42,16 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             apps/frontend/package-lock.json
+            apps/video-worker/package-lock.json
 
       - name: Install deployment tools
         run: npm ci
 
       - name: Install dashboard dependencies
         run: npm --prefix apps/frontend ci
+
+      - name: Install EBC video worker dependencies
+        run: npm --prefix apps/video-worker ci
 
       - name: Validate application
         run: npm test

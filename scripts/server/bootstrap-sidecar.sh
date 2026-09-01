@@ -24,5 +24,6 @@ fi
 
 npm ci
 npm --prefix apps/frontend ci
+npm --prefix apps/video-worker ci
 
 echo "EBC workspace is ready at $EBC_REPOSITORY_DIR"

@@ -1,0 +1,45 @@
+name = "ebc-video-worker"
+main = "src/index.js"
+compatibility_date = "2026-08-28"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[vars]
+LIVEKIT_URL = "wss://eila-7257eve9.livekit.cloud"
+VIDEO_AGENT_NAME = "ebc-avatar"
+LEMONSLICE_API_URL = "https://lemonslice.com/api/liveai/sessions"
+
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "ebc_video_events"
+
+[[queues.producers]]
+binding = "EVENTS"
+queue = "ebc-communication-events"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+
+[[secrets_store_secrets]]
+binding = "LIVEKIT_API_KEY"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_LIVEKIT_API_KEY"
+
+[[secrets_store_secrets]]
+binding = "LIVEKIT_API_SECRET"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_LIVEKIT_API_SECRET"
+
+[[secrets_store_secrets]]
+binding = "EBC_VIDEO_CAPABILITY_TOKEN"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_RUNTIME_TOKEN"
+
+[[secrets_store_secrets]]
+binding = "LEMONSLICE_EBC_API_KEY"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_LEMONSLICE_API_KEY"

@@ -5,6 +5,7 @@ urls=(
   "https://ebc-dashboard-worker.cryptocapitalgroupfl.workers.dev/api/health"
   "https://ebc-concierge-worker.cryptocapitalgroupfl.workers.dev/api/health"
   "https://ebc-voice-worker.cryptocapitalgroupfl.workers.dev/health"
+  "https://ebc-video-worker.cryptocapitalgroupfl.workers.dev/health"
   "https://ebc-sms-worker.cryptocapitalgroupfl.workers.dev/api/health"
   "https://ebc-email-worker.cryptocapitalgroupfl.workers.dev/api/health"
   "https://ebc-call-center.pages.dev/"

@@ -20,6 +20,11 @@ DASHBOARD_URL = "https://ebc-dashboard-worker.cryptocapitalgroupfl.workers.dev"
 DOCUSIGN_BASE_PATH = "https://demo.docusign.net/restapi"
 DOCUSIGN_RETURN_URL = "https://ebc-concierge-worker.cryptocapitalgroupfl.workers.dev"
 DOCUSIGN_SELECTION_CUTOFF_MS = "1786309440000"
+EBC_SUPPORT_AVATAR_IMAGE_URL = "https://ebc-call-center.pages.dev/buddys/ACE-Support.jpg"
+EBC_SUPPORT_AVATAR_PROMPT = "Use attentive professional upper-body movement with natural eye contact and restrained hand gestures."
+EBC_SUPPORT_VOICE_PROVIDER = "livekit-inference"
+EBC_SUPPORT_VOICE_MODEL = "xai/tts-1"
+EBC_SUPPORT_VOICE_ID = "carina"
 
 [[secrets_store_secrets]]
 binding = "SHARED_GOOGLE_CLIENT_ID"
@@ -51,6 +56,11 @@ binding = "SHARED_DOCUSIGN_USER_ID"
 store_id = "00b34d29f2c94685b0f250dc5b1ee875"
 secret_name = "XYZ_DEMO_DOCUSIGN_USER_ID"
 
+[[secrets_store_secrets]]
+binding = "SHARED_VIDEO_CAPABILITY_TOKEN"
+store_id = "00b34d29f2c94685b0f250dc5b1ee875"
+secret_name = "XYZ_DEMO_RUNTIME_TOKEN"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "ebc-call-center-events"
@@ -71,6 +81,10 @@ service = "ebc-email-worker"
 [[services]]
 binding = "VOICE"
 service = "ebc-voice-worker"
+
+[[services]]
+binding = "VIDEO"
+service = "ebc-video-worker"
 
 [[queues.producers]]
 binding = "EVENTS"

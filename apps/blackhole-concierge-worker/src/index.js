@@ -14,6 +14,7 @@ const SHARED_SECRET_MAPPINGS = [
   { target:"DOCUSIGN_ACCOUNT_ID", binding:"SHARED_DOCUSIGN_ACCOUNT_ID" },
   { target:"DOCUSIGN_INTEGRATION_KEY", binding:"SHARED_DOCUSIGN_INTEGRATION_KEY" },
   { target:"DOCUSIGN_USER_ID", binding:"SHARED_DOCUSIGN_USER_ID" },
+  { target:"EBC_VIDEO_CAPABILITY_TOKEN", binding:"SHARED_VIDEO_CAPABILITY_TOKEN" },
 ];
 
 async function sha256(value) {
@@ -35,6 +36,7 @@ function preferredMethod(payload={}) { return String(payload.contact?.preferredC
 function smsConsentGranted(payload={}) { const v=payload.contact?.smsConsent??payload.lead?.consent; return v===true||v==="true"||v==="on"; }
 function normalizePhone(v="") { return String(v||"").replace(/\D/g,"").replace(/^1(?=\d{10}$)/,""); }
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+async function bindingValue(binding,max=5000){const value=binding&&typeof binding.get==="function"?await binding.get():binding;return String(value||"").trim().slice(0,max);}
 function brandName(env){return String(env.BRAND_NAME||"Everything Built Custom");}
 function assistantName(env){return String(env.ASSISTANT_NAME||"AI Concierge");}
 function tenantContext(env,event={}){const payload=event.payload||{};const contact=payload.contact||event.contact||{};return{tenantId:String(event.tenantId||payload.tenantId||env.TENANT_ID||"blackhole"),corporateId:String(event.corporateId||payload.corporateId||env.CORPORATE_ID||env.TENANT_ID||"blackhole"),locationId:String(event.locationId||payload.locationId||payload.location_id||contact.locationId||contact.location_id||env.DEFAULT_LOCATION_ID||"corporate")};}
@@ -137,6 +139,68 @@ async function requestBuddyCall(env,contact,trigger={}){
   await persistContact(env,contact,{stage:"Contacted",callStatus:"Call requested"});
   await updateDashboardContact(env,contact.id,{stage:"Contacted",callStatus:"Call requested"});
   await emit(env,{type:"call.requested",contactId:contact.id||"",payload});return result;
+}
+
+async function requestEbcVideoSession(env,payload={}){
+  if(!env.VIDEO)return{ok:false,error:"VIDEO binding not configured"};
+  const capabilityToken=await bindingValue(env.EBC_VIDEO_CAPABILITY_TOKEN,500);
+  if(!capabilityToken)throw new Error("EBC_VIDEO_CAPABILITY_TOKEN is not configured");
+  const tenantId=String(env.TENANT_ID||"ebc").trim();
+  const contactId=String(payload.contactId||payload.contact?.id||"").trim();
+  const contact=contactId?await resolveContact(env,contactId,payload):mergeContact(payload.contact||{},payload.context||{});
+  const sessionId=crypto.randomUUID();
+  const firstName=String(contact.firstName||payload.firstName||"there").trim()||"there";
+  const accountName=String(contact.company||[contact.firstName,contact.lastName].filter(Boolean).join(" ")||"the selected EBC account").trim();
+  const project=String(contact.selectedProduct||contact.interest||payload.interest||"custom cart or ATV project").trim();
+  const imageUrl=String(env.EBC_SUPPORT_AVATAR_IMAGE_URL||"").trim();
+  if(!imageUrl)throw new Error("EBC_SUPPORT_AVATAR_IMAGE_URL is not configured");
+  const instructions=[
+    "# Identity",
+    "You are EILA Support, the 24/7 AI support consultant for Everything Built Custom (EBC).",
+    "# Goal",
+    "Help EBC staff use the AI Call Center dashboard and understand the selected customer's lead record. Be concise, operational, and friendly.",
+    "# Dashboard guide",
+    "Pipeline organizes opportunities by New Inquiry, Qualified, Build Review, Quote Sent, Approved, Fabrication, and Completed. Selecting a card opens the customer detail panel. The card icons launch email, EBC AI voice call, SMS, proposal or contract, and appointment scheduling. Leads is the larger product-filtered account directory. Quotes & Contracts contains estimates and DocuSign agreements. Installations contains scheduled builds and fitment work. Appointments contains customer consultation requests that staff can approve or reschedule. Conversations contains saved AI call and support transcripts. Analytics summarizes workflow activity and pipeline outcomes.",
+    "# Support behavior",
+    "Use the known lead context below instead of asking the operator to repeat it. Explain what a control does and give the shortest next step. You may help review the lead, but do not claim that you clicked a control, changed a record, sent a message, created an estimate, or booked an appointment unless the dashboard reports that action succeeded. If the user needs a human, recommend an EBC staff follow-up.",
+    "# Security",
+    "Never request passwords, API keys, payment-card details, bank details, Social Security numbers, or other secrets. Never reveal infrastructure credentials or internal tokens.",
+    "# Voice",
+    "Spoken output only. Respond immediately in one or two short sentences. Ask one question at a time and do not repeat known context.",
+    "# Selected lead context",
+    `Operator opened support for ${accountName}. Contact: ${firstName} ${contact.lastName||""}. Project: ${project}. Location: ${contact.location||"Not provided"}. Lead score: ${contact.leadScore??contact.score??"Not provided"}. Stage: ${contact.stage||"Not provided"}. Call status: ${contact.callStatus||"Not provided"}. Estimate status: ${contact.estimateStatus||"Not provided"}. Appointment status: ${contact.appointmentStatus||"Not provided"}.`,
+  ].join("\n\n").slice(0,5000);
+  const upstream=await env.VIDEO.fetch(new Request("https://ebc-video.internal/internal/video/session",{
+    method:"POST",
+    headers:{"content-type":"application/json","x-ebc-video-capability-token":capabilityToken},
+    body:JSON.stringify({
+      tenantId,
+      product:"ebc-dashboard-support",
+      creatorId:"eila",
+      creatorName:"EILA Support",
+      creatorSlug:"ebc-support",
+      fanId:contactId||sessionId,
+      fanName:accountName,
+      avatarProvider:"lemonslice",
+      avatarSource:"image-url",
+      avatarImageUrl:imageUrl,
+      avatarPrompt:String(env.EBC_SUPPORT_AVATAR_PROMPT||"Use attentive professional upper-body movement with natural eye contact and restrained hand gestures.").trim(),
+      avatarIdlePrompt:"Maintain professional eye contact and a calm listening posture.",
+      voiceProvider:String(env.EBC_SUPPORT_VOICE_PROVIDER||"livekit-inference").trim(),
+      voiceModel:String(env.EBC_SUPPORT_VOICE_MODEL||"xai/tts-1").trim(),
+      voiceId:String(env.EBC_SUPPORT_VOICE_ID||"carina").trim(),
+      instructions,
+      context:{contactId,firstName:contact.firstName||"",lastName:contact.lastName||"",company:contact.company||"",interest:project,location:contact.location||"",leadScore:contact.leadScore??contact.score??""},
+    }),
+  }));
+  const text=await upstream.text();let data={};try{data=text?JSON.parse(text):{};}catch{data={raw:text};}
+  if(!upstream.ok||data?.ok===false)throw new Error(data?.error||`EBC video worker failed (${upstream.status})`);
+  if(contactId){
+    const patch={callStatus:"Video support session created"};
+    await Promise.all([persistContact(env,contact,patch),updateDashboardContact(env,contactId,patch)]);
+  }
+  await emit(env,{type:"video.session.created",contactId,room:data.room||"",dispatchId:data.dispatchId||"",source:payload.source||"ebc-dashboard-support"});
+  return{ok:true,...data,contactId:contactId||undefined,tenantId,assistant:"EILA Support"};
 }
 
 async function processProductSelection(env,payload={}){
@@ -307,6 +371,7 @@ export default { async fetch(request,env,ctx){
     try{const tenant=tenantContext(env,{contact}),key=`tenants/${tenant.tenantId}/documents/${encodeURIComponent(contactId)}/${encodeURIComponent(contact.docusignEnvelopeId)}.pdf`;let pdf;const cached=env.DOCUMENT_ARCHIVE?await env.DOCUMENT_ARCHIVE.get(key):null;if(cached){pdf=await cached.arrayBuffer();}else{pdf=await fetchSignedEnvelopePdf(env,contact.docusignEnvelopeId);if(env.DOCUMENT_ARCHIVE)await env.DOCUMENT_ARCHIVE.put(key,pdf,{httpMetadata:{contentType:"application/pdf"},customMetadata:{tenantId:tenant.tenantId,corporateId:tenant.corporateId,contactId}});}const name=`${brandName(env)}-Agreement-${contact.firstName||"customer"}-${contact.lastName||""}.pdf`.replace(/[^A-Za-z0-9._-]+/g,"-");return new Response(pdf,{status:200,headers:{"Content-Type":"application/pdf","Content-Disposition":`inline; filename=\"${name}\"`,"Cache-Control":"private, no-store"}});}catch(e){return new Response(e.message||"Unable to load signed document",{status:502});}
   }
   if(url.pathname==="/internal/contact-status"&&request.method==="POST"){const auth=await authorizeInternal(request,env);if(!auth.ok)return auth.response;const p=await request.json().catch(()=>({}));const contact=await getSmsContactById(env,p.contactId||"").catch(()=>null)||await getDashboardContact(env,p.contactId||"").catch(()=>null);if(!contact)return Response.json({ok:false,error:"Contact not found"},{status:404});const conversation=await recentConversation(env,contact.id||p.contactId,Number(p.conversationLimit||16));return Response.json({ok:true,contactId:contact.id||p.contactId,callStatus:contact.callStatus||"",documentStatus:contact.documentStatus||"Not sent",selectedProduct:contact.selectedProduct||"",docusignEnvelopeId:contact.docusignEnvelopeId||"",deliveryStatus:contact.deliveryStatus||"Not scheduled",deliveryAt:contact.deliveryAt||"",calendarEventId:contact.calendarEventId||"",estimateStatus:contact.estimateStatus||"",estimateNumber:contact.estimateNumber||"",estimateSentAt:contact.estimateSentAt||"",requirementsSummary:contact.requirementsSummary||"",salesHandoffStatus:contact.salesHandoffStatus||"",appointmentType:contact.appointmentType||"",appointmentStatus:contact.appointmentStatus||"",appointmentStart:contact.appointmentStart||"",appointmentTimeZone:contact.appointmentTimeZone||"",recentConversation:conversation});}
+  if(url.pathname==="/internal/video/session"&&request.method==="POST"){const auth=await authorizeInternal(request,env);if(!auth.ok)return auth.response;try{return Response.json(await requestEbcVideoSession(env,await request.json().catch(()=>({}))));}catch(e){return Response.json({ok:false,error:e.message},{status:502});}}
   if(url.pathname==="/internal/delivery-options"&&request.method==="POST"){const auth=await authorizeInternal(request,env);if(!auth.ok)return auth.response;try{const p=await request.json().catch(()=>({}));const contact=await resolveContact(env,p.contactId||"",p);if(!contact?.id)return Response.json({ok:false,error:"Contact not found"},{status:404});if(String(contact.documentStatus||"").toLowerCase()!=="signed")return Response.json({ok:false,error:"Agreement must be signed before project scheduling"},{status:409});return Response.json({ok:true,contactId:contact.id,selectedProduct:contact.selectedProduct||"",...(await buildDeliveryOptions(env))});}catch(e){return Response.json({ok:false,error:e.message,googleCalendarConfigured:googleCalendarConfigured(env)},{status:502});}}
   if(url.pathname==="/internal/delivery-schedule"&&request.method==="POST"){const auth=await authorizeInternal(request,env);if(!auth.ok)return auth.response;try{const result=await scheduleDelivery(env,await request.json().catch(()=>({})));return Response.json(result,{status:result.ok?200:result.conflict?409:400});}catch(e){return Response.json({ok:false,error:e.message,googleCalendarConfigured:googleCalendarConfigured(env)},{status:502});}}
   if(url.pathname==="/internal/leads"&&request.method==="POST"){const auth=await authorizeInternal(request,env);if(!auth.ok)return auth.response;const payload=await request.json(),method=preferredMethod(payload),contact=payload.contact||{},results={};if(contact.phone&&contact.id){try{results.smsSession={ok:await rememberSmsContact(env,contact)};}catch(e){results.smsSession={ok:false,error:e.message};}}results.email=contact.email?await callBinding(env.EMAIL,"https://email.internal/internal/send",payload):{ok:false,skipped:true};if(!smsConsentGranted(payload))results.sms={ok:false,skipped:true,reason:"SMS consent not granted"};else if(contact.phone){const assistant=assistantName(env),brand=brandName(env),message=method==="Phone"?`Hi ${contact.firstName||"there"}, I'm ${assistant}, the ${brand} AI assistant. I received your request${contact.interest?` about ${contact.interest}`:""}. I'll call you in about 15 seconds. If you miss the call or aren't available, reply EBC at any time and I'll call you immediately. Reply STOP to opt out.`:`Hi ${contact.firstName||"there"}, I'm ${assistant}, the ${brand} AI assistant. I received your request${contact.interest?` about ${contact.interest}`:""}. Would you like me to call you? Reply EBC and I'll ring you. Reply STOP to opt out.`;results.sms=await callBinding(env.SMS,"https://sms.internal/internal/send",{...payload,messageType:method==="Phone"?"ebc-precall":"ebc-welcome",message});}else results.sms={ok:false,skipped:true};const contactFlow=method==="Phone"?"sms-then-call":method==="Text"?"sms-awaiting-call-reply":"email";if(method==="Phone"&&contact.phone){const delayed=(async()=>{await sleep(15000);try{await requestBuddyCall(env,contact,{type:"lead-form",preferredContactMethod:"Phone",delaySeconds:15});}catch(e){await updateDashboardContact(env,contact.id,{callStatus:"Call failed"});}})();if(ctx?.waitUntil)ctx.waitUntil(delayed);}await emit(env,{type:"lead.created",contactId:payload.contactId||contact.id||"",payload});return Response.json({ok:true,preferredContactMethod:method,contactFlow,results});}
