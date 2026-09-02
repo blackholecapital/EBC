@@ -1,5 +1,7 @@
 # EBC repository boundary
 
+> **MANDATORY — READ BEFORE CHANGING OR DEPLOYING THIS REPOSITORY.**
+
 This repository is an isolated Everything Built Custom product module. EBC changes must remain inside `blackholecapital/EBC` and EBC-named deployment resources.
 
 ## Hard rules for agents
